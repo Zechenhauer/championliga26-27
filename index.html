@@ -26,14 +26,14 @@
             --ucl-blue: #003399;
             
             /* Individuelle Vereinsfarben */
-            --bayern-red: #dc052d;        /* FC Bayern: Kräftiges Rot */
-            --bvb-yellow: #fde100;      /* BVB: Gelb */
-            --leipzig-navy: #001f5b;    /* RB Leipzig: Dunkelblau */
-            --stuttgart-ring: #e30613;  /* VfB Stuttgart: Brustring-Rot */
+            --bayern-red: #dc052d;
+            --bvb-yellow: #fde100;
+            --leipzig-navy: #001f5b;
+            --stuttgart-ring: #e30613;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding: 15px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 950px; }
+        .container { width: 100%; max-width: 1050px; }
 
         header { text-align: center; margin-bottom: 20px; }
         h1 { font-size: 2.2rem; color: var(--accent-color); margin-bottom: 5px; }
@@ -42,7 +42,6 @@
 
         .status-box { background: #161b22; border: 1px solid var(--accent-color); padding: 10px 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
 
-        /* Admin Bereich Styles */
         .admin-card {
             background: #161b22;
             border: 1px solid var(--accent-color);
@@ -57,7 +56,6 @@
         .admin-lock { background: #21262d; border: 1px solid var(--border-color); font-size: 0.9rem; cursor: pointer; color: var(--text-muted); padding: 6px 12px; border-radius: 6px; transition: all 0.2s; }
         .admin-lock.unlocked { color: var(--accent-color); border-color: var(--accent-color); background: rgba(0, 255, 135, 0.1); }
 
-        /* Laufband Design */
         .ticker-wrapper { width: 100%; background: #0c0809; border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; margin-bottom: 20px; display: flex; align-items: center; height: 48px; position: relative; }
         .ticker-label { background: var(--ucl-blue); color: #fff; font-size: 0.75rem; font-weight: bold; padding: 0 14px; height: 100%; display: flex; align-items: center; z-index: 3; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; box-shadow: 4px 0 10px rgba(0,0,0,0.5); }
         .ticker-content-box { overflow: hidden; white-space: nowrap; flex: 1; position: relative; display: flex; align-items: center; }
@@ -65,7 +63,6 @@
         .ticker-track:hover { animation-play-state: paused; }
         .ticker-item { display: inline-flex; align-items: center; background: #150a0d; border: 1px solid var(--border-color); padding: 6px 14px; margin: 0 6px; border-radius: 8px; color: #ffffff; font-size: 0.82rem; font-weight: 500; gap: 10px; }
         
-        /* Ticker Vereinsfarben */
         .ticker-item.bayern-ticker { background: rgba(220, 5, 45, 0.3) !important; border-color: var(--bayern-red); }
         .ticker-item.dortmund-ticker { background: rgba(253, 225, 0, 0.2) !important; border-color: var(--bvb-yellow); }
         .ticker-item.leipzig-ticker { background: rgba(0, 31, 91, 0.35) !important; border-color: var(--leipzig-navy); }
@@ -75,14 +72,12 @@
         .ticker-score { color: #ffffff; font-weight: bold; font-size: 0.9rem; background: #251216; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border-color); }
         @keyframes ticker-scroll { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }
 
-        /* Tor-Alarm Banner */
         #goalAlertBanner { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #0f1115, #1a2332); border: 2px solid var(--accent-color); box-shadow: 0 10px 30px rgba(0,255,135,0.3); border-radius: 14px; padding: 18px 24px; z-index: 2000; width: 90%; max-width: 480px; text-align: center; animation: bounce-in 0.5s ease; cursor: pointer; }
         @keyframes bounce-in { 0% { transform: translate(-50%, -30px); opacity: 0; } 100% { transform: translate(-50%, 0); opacity: 1; } }
         .goal-alert-title { font-size: 1.2rem; font-weight: 900; color: var(--accent-color); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
         .goal-alert-scorer { font-size: 1rem; font-weight: bold; margin-bottom: 8px; color: #fff; }
         .goal-alert-match { font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 6px; }
 
-        /* Steuerung & Layout */
         .controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px; background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); flex-wrap: wrap; }
         button, select { background: #21262d; color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.95rem; transition: background 0.2s; }
         button:hover, select:hover { background: #30363d; }
@@ -97,7 +92,6 @@
         .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; }
         h2 { font-size: 1.2rem; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; color: var(--accent-color); }
 
-        /* Spiel-Item */
         .match-card-item { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 15px; margin-bottom: 10px; cursor: pointer; transition: background 0.15s; }
         .match-card-item:hover { background: var(--card-hover); }
         .match-main-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; }
@@ -116,8 +110,8 @@
         .scorer-score-badge { font-weight: bold; color: var(--accent-color); background: #21262d; padding: 1px 6px; border-radius: 3px; font-size: 0.75rem; }
 
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th, td { padding: 8px 8px; text-align: left; border-bottom: 1px solid var(--border-color); }
-        th { color: var(--text-muted); font-weight: 600; }
+        th, td { padding: 8px 6px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { color: var(--text-muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; }
         td.center, th.center { text-align: center; }
         td.right, th.right { text-align: right; }
         .table-row { cursor: pointer; transition: background 0.15s; }
@@ -129,7 +123,6 @@
         tr.el-zone td:first-child { border-left: 4px solid #388bfd; }
         tr.relegation-zone td:first-child { border-left: 4px solid #f0883e; }
 
-        /* Vereinsfarben Hervorhebung */
         tr.bayern-team { background: rgba(220, 5, 45, 0.22) !important; font-weight: bold; }
         tr.bayern-team td { border-color: rgba(220, 5, 45, 0.5); }
         .bayern-highlight { background: rgba(220, 5, 45, 0.28); border-left: 4px solid var(--bayern-red); padding-left: 6px; border-radius: 4px; }
@@ -146,7 +139,6 @@
         tr.stuttgart-team td { border-color: rgba(227, 6, 19, 0.4); }
         .stuttgart-highlight { background: linear-gradient(90deg, rgba(230,230,230,0.15), rgba(227,6,19,0.25), rgba(230,230,230,0.15)); border-left: 4px solid var(--stuttgart-ring); padding-left: 6px; border-radius: 4px; }
 
-        /* Modals */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--card-bg); border: 1px solid var(--accent-color); border-radius: 12px; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; padding: 25px; position: relative; }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; background: none; border: none; }
@@ -200,7 +192,7 @@
             <span>Verbinde mit API...</span>
         </div>
 
-        <!-- ADMIN BEREICH (Öffnet sich bei PIN 1919) -->
+        <!-- ADMIN BEREICH -->
         <div class="admin-card" id="adminCard">
             <div style="font-weight: bold; color: var(--accent-color); margin-bottom: 10px; text-transform: uppercase; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
                 <span>🔧 Supabase Push-Benachrichtigung testen (Champions League)</span>
@@ -281,7 +273,7 @@
             <div class="modal-header">
                 <div id="teamStatsHeader" style="font-size: 1.3rem; font-weight: bold; color: var(--accent-color);">Team-Saisonstatistik</div>
             </div>
-            <div id="teamStatsContent" style="margin-top: 15px;">Lade Team-Werte...</div>
+            <div id="teamStatsContent" style="margin-top: 15px;">Lade Team-Werte, Stadion & Kader...</div>
         </div>
     </div>
 
@@ -313,7 +305,7 @@
             if (name.includes("Bayern")) return { trClass: "bayern-team", hlClass: "bayern-highlight", tickerClass: "bayern-ticker" };
             if (name.includes("Dortmund")) return { trClass: "dortmund-team", hlClass: "dortmund-highlight", tickerClass: "dortmund-ticker" };
             if (name.includes("Leipzig")) return { trClass: "leipzig-team", hlClass: "leipzig-highlight", tickerClass: "leipzig-ticker" };
-            if (name.includes("Stuttgart")) return { trClass: "stuttgart-team", hlClass: "stuttgart-highlight", tickerClass: "stuttgart-ticker" };
+            if (name.includes("Stuttgart")) return { trClass: "stuttgart-team", hlClass: "stuttgart-highlight", tickerClass: "stuttgart-ring" };
             return { trClass: "", hlClass: "", tickerClass: "" };
         }
 
@@ -360,9 +352,6 @@
             }
         }
 
-        // ==========================================
-        // SUPABASE PUSH & TOR-ALARM (SENT GOALS)
-        // ==========================================
         async function loadSentGoalsCache() {
             try {
                 const { data } = await supabaseClient.from('sent_goals_championsliga').select('*');
@@ -486,8 +475,12 @@
                         let goals = p.statistics[0].goals.total ?? 0;
                         let teamName = p.statistics[0].team.name;
                         let styleObj = getTeamStyleClass(teamName);
-                        html += `<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; padding:3px 0; border-bottom:1px solid var(--border-color);" class="${styleObj.hlClass}">
-                            <span><b>${i+1}.</b> ${p.player.name} <span style="color:var(--text-muted); font-size:0.75rem;">(${teamName})</span></span>
+                        html += `<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; padding:4px 0; border-bottom:1px solid var(--border-color);" class="${styleObj.hlClass}">
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <b>${i+1}.</b>
+                                <img src="${p.player.photo}" style="width:20px; height:20px; border-radius:50%; object-fit:cover;">
+                                <span>${p.player.name}</span>
+                            </div>
                             <span style="background:#21262d; padding:1px 6px; border-radius:4px; font-weight:bold; color:var(--accent-color);">${goals} Tore</span>
                         </div>`;
                     }
@@ -509,8 +502,12 @@
                         let assists = p.statistics[0].goals.assists ?? 0;
                         let teamName = p.statistics[0].team.name;
                         let styleObj = getTeamStyleClass(teamName);
-                        html += `<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; padding:3px 0; border-bottom:1px solid var(--border-color);" class="${styleObj.hlClass}">
-                            <span><b>${i+1}.</b> ${p.player.name} <span style="color:var(--text-muted); font-size:0.75rem;">(${teamName})</span></span>
+                        html += `<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; padding:4px 0; border-bottom:1px solid var(--border-color);" class="${styleObj.hlClass}">
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <b>${i+1}.</b>
+                                <img src="${p.player.photo}" style="width:20px; height:20px; border-radius:50%; object-fit:cover;">
+                                <span>${p.player.name}</span>
+                            </div>
                             <span style="background:#21262d; padding:1px 6px; border-radius:4px; font-weight:bold; color:var(--accent-color);">${assists} Assists</span>
                         </div>`;
                     }
@@ -532,8 +529,12 @@
                         let cards = p.statistics[0].cards.yellow ?? 0;
                         let teamName = p.statistics[0].team.name;
                         let styleObj = getTeamStyleClass(teamName);
-                        html += `<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; padding:3px 0; border-bottom:1px solid var(--border-color);" class="${styleObj.hlClass}">
-                            <span><b>${i+1}.</b> ${p.player.name} <span style="color:var(--text-muted); font-size:0.75rem;">(${teamName})</span></span>
+                        html += `<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; padding:4px 0; border-bottom:1px solid var(--border-color);" class="${styleObj.hlClass}">
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <b>${i+1}.</b>
+                                <img src="${p.player.photo}" style="width:20px; height:20px; border-radius:50%; object-fit:cover;">
+                                <span>${p.player.name}</span>
+                            </div>
                             <span style="background:#21262d; padding:1px 6px; border-radius:4px; font-weight:bold; color:#f0883e;">🟨 ${cards}</span>
                         </div>`;
                     }
@@ -545,37 +546,77 @@
         async function openTeamStats(teamId, teamName, teamLogo) {
             document.getElementById("teamStatsModal").style.display = "flex";
             document.getElementById("teamStatsHeader").innerHTML = `<div style="display:flex; align-items:center; gap:10px;"><img src="${teamLogo}" style="width:30px; height:30px; object-fit:contain;"><span>Saisonstatistik: ${teamName}</span></div>`;
-            document.getElementById("teamStatsContent").innerHTML = "Lade Team-Daten von API-Football...";
+            document.getElementById("teamStatsContent").innerHTML = "Lade Team-Daten, Stadion & Kader von API-Football...";
 
             try {
-                const res = await fetch(`https://v3.football.api-sports.io/teams/statistics?league=${leagueId}&season=${season}&team=${teamId}`, { headers: { "x-apisports-key": apiKey } });
-                const data = await res.json();
+                const [statsRes, teamInfoRes, squadRes] = await Promise.all([
+                    fetch(`https://v3.football.api-sports.io/teams/statistics?league=${leagueId}&season=${season}&team=${teamId}`, { headers: { "x-apisports-key": apiKey } }),
+                    fetch(`https://v3.football.api-sports.io/teams?id=${teamId}`, { headers: { "x-apisports-key": apiKey } }),
+                    fetch(`https://v3.football.api-sports.io/players/squads?team=${teamId}`, { headers: { "x-apisports-key": apiKey } })
+                ]);
 
-                if(data.response) {
-                    const st = data.response;
-                    let formStr = st.form || "N/V";
-                    let cleanSheets = st.clean_sheet?.total || 0;
-                    let failedToScore = st.failed_to_score?.total || 0;
+                const statsData = await statsRes.json();
+                const teamInfoData = await teamInfoRes.json();
+                const squadData = await squadRes.json();
 
-                    let html = `
-                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px; margin-bottom:15px;">
-                            <div style="background:#161b22; padding:12px; border-radius:8px; border:1px solid var(--border-color);">
-                                <div style="color:var(--text-muted); font-size:0.8rem;">Formkurve (letzte Spiele)</div>
-                                <div style="font-size:1.1rem; font-weight:bold; color:var(--accent-color); margin-top:4px;">${formStr}</div>
-                            </div>
-                            <div style="background:#161b22; padding:12px; border-radius:8px; border:1px solid var(--border-color);">
-                                <div style="color:var(--text-muted); font-size:0.8rem;">Spiele zu Null (Clean Sheets)</div>
-                                <div style="font-size:1.1rem; font-weight:bold; margin-top:4px;">${cleanSheets}</div>
-                            </div>
-                            <div style="background:#161b22; padding:12px; border-radius:8px; border:1px solid var(--border-color);">
-                                <div style="color:var(--text-muted); font-size:0.8rem;">Spiele ohne eigenen Torerfolg</div>
-                                <div style="font-size:1.1rem; font-weight:bold; margin-top:4px;">${failedToScore}</div>
+                let html = "";
+
+                if (teamInfoData.response && teamInfoData.response.length > 0) {
+                    const t = teamInfoData.response[0].team;
+                    const v = teamInfoData.response[0].venue;
+                    const coachName = statsData.response?.coach?.name || "Nicht angegeben";
+                    html += `
+                        <div style="margin-bottom:20px;">
+                            <div style="font-weight:bold; color:var(--accent-color); margin-bottom:8px; font-size:0.9rem; text-transform:uppercase;">1. Stammdaten, Stadion & Trainer</div>
+                            <div style="background:#161b22; padding:12px; border-radius:8px; border:1px solid var(--border-color); font-size:0.85rem; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                                <div><b>Name:</b> ${t.name} (${t.code || '-'})</div>
+                                <div><b>Gründungsjahr:</b> ${t.founded || '-'}</div>
+                                <div><b>Cheftrainer:</b> 🧑‍🏫 ${coachName}</div>
+                                <div><b>Stadion:</b> ${v.name || '-'}</div>
+                                <div><b>Kapazität:</b> ${v.capacity ? v.capacity.toLocaleString('de-DE') + ' Plätze' : '-'}</div>
+                                <div style="grid-column: span 2;"><b>Adresse:</b> ${v.address || ''}, ${v.city || ''}</div>
                             </div>
                         </div>
                     `;
+                }
+
+                if (statsData.response) {
+                    const st = statsData.response;
+                    let formStr = st.form || "N/V";
+                    let homeWins = st.fixtures?.wins?.home ?? 0;
+                    let homeDraws = st.fixtures?.draws?.home ?? 0;
+                    let homeLoses = st.fixtures?.loses?.home ?? 0;
+                    let awayWins = st.fixtures?.wins?.away ?? 0;
+                    let awayDraws = st.fixtures?.draws?.away ?? 0;
+                    let awayLoses = st.fixtures?.loses?.away ?? 0;
+                    let cleanSheets = st.clean_sheet?.total || 0;
+                    let failedToScore = st.failed_to_score?.total || 0;
+
+                    html += `
+                        <div style="margin-bottom:20px;">
+                            <div style="font-weight:bold; color:var(--accent-color); margin-bottom:8px; font-size:0.9rem; text-transform:uppercase;">3. Saisondaten & Statistiken</div>
+                            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:12px;">
+                                <div style="background:#161b22; padding:12px; border-radius:8px; border:1px solid var(--border-color);">
+                                    <div style="color:var(--text-muted); font-size:0.8rem;">Formkurve</div>
+                                    <div style="font-size:1.1rem; font-weight:bold; color:var(--accent-color); margin-top:4px; letter-spacing:1px;">${formStr}</div>
+                                </div>
+                                <div style="background:#161b22; padding:12px; border-radius:8px; border:1px solid var(--border-color);">
+                                    <div style="color:var(--text-muted); font-size:0.8rem;">Heimbilanz (S-U-N)</div>
+                                    <div style="font-size:1.1rem; font-weight:bold; margin-top:4px;">${homeWins}-${homeDraws}-${homeLoses}</div>
+                                </div>
+                                <div style="background:#161b22; padding:12px; border-radius:8px; border:1px solid var(--border-color);">
+                                    <div style="color:var(--text-muted); font-size:0.8rem;">Auswärtsbilanz (S-U-N)</div>
+                                    <div style="font-size:1.1rem; font-weight:bold; margin-top:4px;">${awayWins}-${awayDraws}-${awayLoses}</div>
+                                </div>
+                                <div style="background:#161b22; padding:12px; border-radius:8px; border:1px solid var(--border-color);">
+                                    <div style="color:var(--text-muted); font-size:0.8rem;">Clean Sheets / Ohne Tor</div>
+                                    <div style="font-size:1.1rem; font-weight:bold; margin-top:4px;">${cleanSheets} / ${failedToScore}</div>
+                                </div>
+                            </div>
+                    `;
 
                     if (st.goals && st.goals.for && st.goals.for.minute) {
-                        html += `<h3 style="font-size:1rem; color:var(--accent-color); margin:15px 0 8px 0; border-bottom:1px solid var(--border-color); padding-bottom:4px;">Tor-Verteilung nach Minuten</h3>`;
+                        html += `<h4 style="font-size:0.9rem; color:var(--accent-color); margin:12px 0 6px 0;">Tor-Verteilung nach Minuten</h4>`;
                         html += `<table><tr><th>Minute</th><th class="center">Tore</th><th class="center">%</th></tr>`;
                         for (let min in st.goals.for.minute) {
                             let obj = st.goals.for.minute[min];
@@ -583,11 +624,35 @@
                         }
                         html += `</table>`;
                     }
-
-                    document.getElementById("teamStatsContent").innerHTML = html;
-                } else {
-                    document.getElementById("teamStatsContent").innerHTML = "Keine Statistiken für dieses Team verfügbar.";
+                    html += `</div>`;
                 }
+
+                if (squadData.response && squadData.response.length > 0) {
+                    const players = squadData.response[0].players;
+                    let goalkeepers = players.filter(p => p.position === 'Goalkeeper');
+                    let defenders = players.filter(p => p.position === 'Defender');
+                    let midfielders = players.filter(p => p.position === 'Midfielder');
+                    let attackers = players.filter(p => p.position === 'Attacker');
+
+                    function renderPlayerBadges(list) {
+                        return list.map(p => `<span style="background:#21262d; border:1px solid var(--border-color); padding:4px 8px; border-radius:6px; font-size:0.8rem; display:inline-block; margin:3px;">#${p.number !== null ? p.number : '?'} ${p.name} ${p.age ? '('+p.age+' J.)' : ''}</span>`).join(" ");
+                    }
+
+                    html += `
+                        <div>
+                            <div style="font-weight:bold; color:var(--accent-color); margin-bottom:8px; font-size:0.9rem; text-transform:uppercase;">2. Aktueller Kader</div>
+                            <div style="background:#161b22; padding:15px; border-radius:8px; border:1px solid var(--border-color); display:flex; flex-direction:column; gap:12px; font-size:0.85rem;">
+                                <div><strong style="color:var(--text-muted); display:block; margin-bottom:4px;">Torhüter</strong> ${renderPlayerBadges(goalkeepers)}</div>
+                                <div><strong style="color:var(--text-muted); display:block; margin-bottom:4px;">Abwehr</strong> ${renderPlayerBadges(defenders)}</div>
+                                <div><strong style="color:var(--text-muted); display:block; margin-bottom:4px;">Mittelfeld</strong> ${renderPlayerBadges(midfielders)}</div>
+                                <div><strong style="color:var(--text-muted); display:block; margin-bottom:4px;">Angriff</strong> ${renderPlayerBadges(attackers)}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                document.getElementById("teamStatsContent").innerHTML = html || "Keine Statistiken für dieses Team verfügbar.";
+
             } catch(e) {
                 document.getElementById("teamStatsContent").innerHTML = "Fehler beim Laden der Team-Statistiken.";
             }
@@ -599,7 +664,7 @@
             globalTopScorers.forEach((p, index) => {
                 let stats = p.statistics[0];
                 let styleObj = getTeamStyleClass(stats.team.name);
-                html += `<tr class="${styleObj.trClass}"><td><b>${index+1}</b></td><td><div style="display:flex; align-items:center; gap:6px;"><img src="${p.player.photo}" style="width:20px; height:20px; border-radius:50%; object-fit:cover;"><span>${p.player.name}</span></div></td><td><div style="display:flex; align-items:center; gap:6px;"><img src="${stats.team.logo}" style="width:16px; height:16px; object-fit:contain;"><span>${stats.team.name}</span></div></td><td class="center"><b>${stats.goals.total ?? 0}</b></td><td class="center">${stats.goals.penalty ?? 0}</td></tr>`;
+                html += `<tr class="${styleObj.trClass}"><td><b>${index+1}</b></td><td><div style="display:flex; align-items:center; gap:8px;"><img src="${p.player.photo}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;"><span>${p.player.name}</span></div></td><td><div style="display:flex; align-items:center; gap:6px;"><img src="${stats.team.logo}" style="width:16px; height:16px; object-fit:contain;"><span>${stats.team.name}</span></div></td><td class="center"><b>${stats.goals.total ?? 0}</b></td><td class="center">${stats.goals.penalty ?? 0}</td></tr>`;
             });
             document.getElementById("fullScorersContainer").innerHTML = html + `</table>`;
         }
@@ -610,7 +675,7 @@
             globalTopAssists.forEach((p, index) => {
                 let stats = p.statistics[0];
                 let styleObj = getTeamStyleClass(stats.team.name);
-                html += `<tr class="${styleObj.trClass}"><td><b>${index+1}</b></td><td><div style="display:flex; align-items:center; gap:6px;"><img src="${p.player.photo}" style="width:20px; height:20px; border-radius:50%; object-fit:cover;"><span>${p.player.name}</span></div></td><td><div style="display:flex; align-items:center; gap:6px;"><img src="${stats.team.logo}" style="width:16px; height:16px; object-fit:contain;"><span>${stats.team.name}</span></div></td><td class="center"><b>${stats.goals.assists ?? 0}</b></td></tr>`;
+                html += `<tr class="${styleObj.trClass}"><td><b>${index+1}</b></td><td><div style="display:flex; align-items:center; gap:8px;"><img src="${p.player.photo}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;"><span>${p.player.name}</span></div></td><td><div style="display:flex; align-items:center; gap:6px;"><img src="${stats.team.logo}" style="width:16px; height:16px; object-fit:contain;"><span>${stats.team.name}</span></div></td><td class="center"><b>${stats.goals.assists ?? 0}</b></td></tr>`;
             });
             document.getElementById("fullAssistsContainer").innerHTML = html + `</table>`;
         }
@@ -621,7 +686,7 @@
             globalYellowCards.forEach((p, index) => {
                 let stats = p.statistics[0];
                 let styleObj = getTeamStyleClass(stats.team.name);
-                html += `<tr class="${styleObj.trClass}"><td><b>${index+1}</b></td><td><span>${p.player.name}</span></td><td><span>${stats.team.name}</span></td><td class="center"><b>${stats.cards.yellow ?? 0}</b></td><td class="center">${stats.cards.yellowred ?? 0}</td><td class="center">${stats.cards.red ?? 0}</td></tr>`;
+                html += `<tr class="${styleObj.trClass}"><td><b>${index+1}</b></td><td><div style="display:flex; align-items:center; gap:8px;"><img src="${p.player.photo}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;"><span>${p.player.name}</span></div></td><td><span>${stats.team.name}</span></td><td class="center"><b>${stats.cards.yellow ?? 0}</b></td><td class="center">${stats.cards.yellowred ?? 0}</td><td class="center">${stats.cards.red ?? 0}</td></tr>`;
             });
             document.getElementById("fullYellowCardsContainer").innerHTML = html + `</table>`;
         }
@@ -866,7 +931,7 @@
                 const data = await res.json();
                 if(data.response && data.response.length > 0) {
                     const standings = data.response[0].league.standings[0];
-                    let html = `<table><tr><th>#</th><th>Team</th><th class="center">Sp</th><th class="center">Tore</th><th class="right">Pkt</th></tr>`;
+                    let html = `<table><tr><th>#</th><th>Team</th><th class="center">Sp</th><th class="center">S</th><th class="center">U</th><th class="center">N</th><th class="center">Tore</th><th class="center">Diff</th><th class="right">Pkt</th></tr>`;
                     
                     let top3Html = "";
                     for(let i = 0; i < Math.min(3, standings.length); i++) {
@@ -881,11 +946,17 @@
                         let styleObj = getTeamStyleClass(s.team.name);
                         if (styleObj.trClass) zoneClass += " " + styleObj.trClass;
                         
+                        let diff = s.goalsDiff !== undefined ? (s.goalsDiff > 0 ? '+' + s.goalsDiff : s.goalsDiff) : (s.all.goals.for - s.all.goals.against > 0 ? '+' + (s.all.goals.for - s.all.goals.against) : (s.all.goals.for - s.all.goals.against));
+
                         html += `<tr class="table-row ${zoneClass}" onclick="openTeamStats(${s.team.id}, '${s.team.name}', '${s.team.logo}')">
                             <td><b>${s.rank}</b></td>
                             <td><div class="table-team"><img src="${s.team.logo}"><span>${s.team.name}</span></div></td>
                             <td class="center">${s.all.played}</td>
+                            <td class="center">${s.all.win}</td>
+                            <td class="center">${s.all.draw}</td>
+                            <td class="center">${s.all.lose}</td>
                             <td class="center">${s.all.goals.for}:${s.all.goals.against}</td>
+                            <td class="center">${diff}</td>
                             <td class="right"><b>${s.points}</b></td>
                         </tr>`;
                     });
