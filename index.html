@@ -25,7 +25,6 @@
             --live-red: #ff3333;
             --ucl-blue: #003399;
             
-            /* Individuelle Vereinsfarben */
             --bayern-red: #dc052d;
             --bvb-yellow: #fde100;
             --leipzig-navy: #001f5b;
@@ -363,8 +362,12 @@
             } catch (e) {}
         }
 
-        async function recordGoalInSupabase(matchId, homeScore, awayScore) {
+        async function recordGoalAndNotify(matchId, home, away, homeScore, awayScore, latestScorer, scoringTeam) {
             sentGoalsCache[matchId] = { home: homeScore, away: awayScore };
+            
+            let cleanPlayer = latestScorer ? latestScorer.replace(/⚽\s*/, '').replace(/\(\d+['']\)/, '').trim() : '';
+            let minStr = latestScorer && latestScorer.match(/\(\d+['']\)/) ? ` ${latestScorer.match(/\(\d+['']\)/)[0]}` : '';
+
             try {
                 await supabaseClient.from('sent_goals_championsliga').upsert({
                     match_id: String(matchId),
@@ -372,7 +375,20 @@
                     away_score: awayScore,
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'match_id' });
-            } catch (e) {}
+
+                await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        table: 'push_subscriptions_championsliga',
+                        title: `⭐ Champions League Tor: ${scoringTeam}!`,
+                        body: `Stand: ${homeScore}:${awayScore}\n${home} : ${away}${cleanPlayer ? '\nSchütze: ' + cleanPlayer + minStr : ''}`
+                    })
+                });
+            } catch (e) {
+                console.error("Fehler beim Push / Record:", e);
+            }
         }
 
         async function subscribePush() {
@@ -395,13 +411,11 @@
                     applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
                 });
 
-                const p256dh = subscription.getKey('p256dh') ? btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')))) : '';
-                const auth = subscription.getKey('auth') ? btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth')))) : '';
-
+                const subJson = subscription.toJSON();
                 await supabaseClient.from('push_subscriptions_championsliga').upsert({
-                    endpoint: subscription.endpoint,
-                    p256dh: p256dh,
-                    auth: auth
+                    endpoint: subJson.endpoint,
+                    p256dh: subJson.keys.p256dh,
+                    auth: subJson.keys.auth
                 }, { onConflict: 'endpoint' });
 
                 alert("Champions League Tor-Alarm erfolgreich aktiviert!");
@@ -769,13 +783,17 @@
 
                         let cachedScore = sentGoalsCache[fixtureId];
                         if (!cachedScore) {
-                            recordGoalInSupabase(fixtureId, goalsHome, goalsAway);
+                            sentGoalsCache[fixtureId] = { home: goalsHome, away: goalsAway };
                         } else {
                             if (goalsHome > cachedScore.home || goalsAway > cachedScore.away) {
                                 let scoringTeam = goalsHome > cachedScore.home ? home.name : away.name;
                                 let latestGoal = events.filter(ev => ev.type === 'Goal').pop();
-                                showGoalAlert(scoringTeam, latestGoal ? `${latestGoal.player.name} (${latestGoal.time.elapsed}. Min)` : "Tor", `${home.name} - ${away.name}`);
-                                recordGoalInSupabase(fixtureId, goalsHome, goalsAway);
+                                let scorerText = latestGoal ? `${latestGoal.player.name} (${latestGoal.time.elapsed}. Min)` : "Tor";
+                                
+                                showGoalAlert(scoringTeam, scorerText, `${home.name} - ${away.name}`);
+                                
+                                // Automatischer Push & Datenbank-Eintrag via Edge Function
+                                recordGoalAndNotify(fixtureId, home.name, away.name, goalsHome, goalsAway, latestGoal ? `⚽ ${latestGoal.player.name} (${latestGoal.time.elapsed}')` : '', scoringTeam);
                             }
                         }
 
