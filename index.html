@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UEFA Champions League PRO Dashboard</title>
+    <title>⭐ UEFA Champions League PRO Dashboard</title>
     
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -73,8 +73,8 @@
 
         #goalAlertBanner { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #0f1115, #1a2332); border: 2px solid var(--accent-color); box-shadow: 0 10px 30px rgba(0,255,135,0.3); border-radius: 14px; padding: 18px 24px; z-index: 2000; width: 90%; max-width: 480px; text-align: center; animation: bounce-in 0.5s ease; cursor: pointer; }
         @keyframes bounce-in { 0% { transform: translate(-50%, -30px); opacity: 0; } 100% { transform: translate(-50%, 0); opacity: 1; } }
-        .goal-alert-title { font-size: 1.2rem; font-weight: 900; color: var(--accent-color); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .goal-alert-scorer { font-size: 1rem; font-weight: bold; margin-bottom: 8px; color: #fff; }
+        .goal-alert-title { font-size: 1.1rem; font-weight: 900; color: var(--accent-color); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .goal-alert-scorer { font-size: 0.95rem; font-weight: bold; margin-bottom: 8px; color: #fff; }
         .goal-alert-match { font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 6px; }
 
         .controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px; background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); flex-wrap: wrap; }
@@ -160,9 +160,9 @@
 <body>
     <!-- Live Tor-Alarm Popup -->
     <div id="goalAlertBanner" onclick="hideGoalAlert()">
-        <div class="goal-alert-title" id="goalAlertTeam">⚽ Tor!</div>
+        <div class="goal-alert-title" id="goalAlertTeam">⭐ Champions League: ⚽Toooor!</div>
         <div class="goal-alert-scorer" id="goalAlertScorer">Torschütze & Minute</div>
-        <div class="goal-alert-match" id="goalAlertMatch">Spielstand & Paarung</div>
+        <div class="goal-alert-match" id="goalAlertMatch">Spielstand: Heimteam : Auswärtsteam</div>
         <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 8px;">(Zum Schließen antippen)</div>
     </div>
 
@@ -365,8 +365,15 @@
         async function recordGoalAndNotify(matchId, home, away, homeScore, awayScore, latestScorer, scoringTeam) {
             sentGoalsCache[matchId] = { home: homeScore, away: awayScore };
             
-            let cleanPlayer = latestScorer ? latestScorer.replace(/⚽\s*/, '').replace(/\(\d+['']\)/, '').trim() : '';
-            let minStr = latestScorer && latestScorer.match(/\(\d+['']\)/) ? ` ${latestScorer.match(/\(\d+['']\)/)[0]}` : '';
+            let cleanPlayer = latestScorer ? latestScorer.replace(/⚽\s*/, '').replace(/\(\d+['']\)/, '').trim() : 'Unbekannt';
+            let minStr = latestScorer && latestScorer.match(/\(\d+['']\)/) ? ` (${latestScorer.match(/\(\d+['']\)/)[0]})` : '';
+
+            // Formatierung exakt nach Vorgabe für den Push-Dienst:
+            // ⭐ Champions League: ⚽Toooor für [Team]
+            // erzielt durch [Schütze], [Minute]
+            // Spielstand: Heimteam : Auswärtsteam
+            let pushTitle = `⭐ Champions League: ⚽Toooor für ${scoringTeam}`;
+            let pushBody = `erzielt durch ${cleanPlayer},${minStr}\nSpielstand: ${home} : ${away} (${homeScore}:${awayScore})`;
 
             try {
                 await supabaseClient.from('sent_goals_championsliga').upsert({
@@ -382,8 +389,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         table: 'push_subscriptions_championsliga',
-                        title: `⭐ Champions League Tor: ${scoringTeam}!`,
-                        body: `Stand: ${homeScore}:${awayScore}\n${home} : ${away}${cleanPlayer ? '\nSchütze: ' + cleanPlayer + minStr : ''}`
+                        title: pushTitle,
+                        body: pushBody
                     })
                 });
             } catch (e) {
@@ -443,8 +450,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         table: 'push_subscriptions_championsliga',
-                        title: "⭐ Champions League Tor-Alarm (Test)",
-                        body: "Test-Alarm über Supabase Edge Function erfolgreich ausgelöst!"
+                        title: "⭐ Champions League: ⚽Toooor für FC Bayern München",
+                        body: "erzielt durch Harry Kane, (42')\nSpielstand: FC Bayern München : Real Madrid"
                     })
                 });
                 if (response.ok) alert("Test-Push erfolgreich ausgelöst!");
@@ -455,9 +462,9 @@
         }
 
         function showGoalAlert(teamName, scorerInfo, matchInfo) {
-            document.getElementById("goalAlertTeam").textContent = `⚽ Tor für ${teamName}!`;
-            document.getElementById("goalAlertScorer").textContent = scorerInfo;
-            document.getElementById("goalAlertMatch").textContent = matchInfo;
+            document.getElementById("goalAlertTeam").textContent = `⭐ Champions League: ⚽Toooor für ${teamName}`;
+            document.getElementById("goalAlertScorer").textContent = `erzielt durch ${scorerInfo}`;
+            document.getElementById("goalAlertMatch").textContent = `Spielstand: ${matchInfo}`;
             document.getElementById("goalAlertBanner").style.display = "block";
             setTimeout(() => { hideGoalAlert(); }, 10000);
         }
@@ -788,12 +795,11 @@
                             if (goalsHome > cachedScore.home || goalsAway > cachedScore.away) {
                                 let scoringTeam = goalsHome > cachedScore.home ? home.name : away.name;
                                 let latestGoal = events.filter(ev => ev.type === 'Goal').pop();
-                                let scorerText = latestGoal ? `${latestGoal.player.name} (${latestGoal.time.elapsed}. Min)` : "Tor";
+                                let scorerText = latestGoal ? `${latestGoal.player.name}, (${latestGoal.time.elapsed}')` : "Unbekannter Torschütze, (?')";
                                 
-                                showGoalAlert(scoringTeam, scorerText, `${home.name} - ${away.name}`);
+                                showGoalAlert(scoringTeam, scorerText, `${home.name} : ${away.name}`);
                                 
-                                // Automatischer Push & Datenbank-Eintrag via Edge Function
-                                recordGoalAndNotify(fixtureId, home.name, away.name, goalsHome, goalsAway, latestGoal ? `⚽ ${latestGoal.player.name} (${latestGoal.time.elapsed}')` : '', scoringTeam);
+                                recordGoalAndNotify(fixtureId, home.name, away.name, goalsHome, goalsAway, latestGoal ? `${latestGoal.player.name}, (${latestGoal.time.elapsed}')` : '', scoringTeam);
                             }
                         }
 
