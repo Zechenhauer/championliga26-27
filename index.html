@@ -368,10 +368,6 @@
             let cleanPlayer = latestScorer ? latestScorer.replace(/⚽\s*/, '').replace(/\(\d+['']\)/, '').trim() : 'Unbekannt';
             let minStr = latestScorer && latestScorer.match(/\(\d+['']\)/) ? ` (${latestScorer.match(/\(\d+['']\)/)[0]})` : '';
 
-            // Formatierung exakt nach Vorgabe für den Push-Dienst:
-            // ⭐ Champions League: ⚽Toooor für [Team]
-            // erzielt durch [Schütze], [Minute]
-            // Spielstand: Heimteam : Auswärtsteam
             let pushTitle = `⭐ Champions League: ⚽Toooor für ${scoringTeam}`;
             let pushBody = `erzielt durch ${cleanPlayer},${minStr}\nSpielstand: ${home} : ${away} (${homeScore}:${awayScore})`;
 
@@ -395,6 +391,39 @@
                 });
             } catch (e) {
                 console.error("Fehler beim Push / Record:", e);
+            }
+        }
+
+        // Neue Funktion für Tor-Korrekturen / VAR-Rücknahme
+        async function recordVarCorrectionAndNotify(matchId, home, away, homeScore, awayScore) {
+            sentGoalsCache[matchId] = { home: homeScore, away: awayScore };
+
+            let pushTitle = `⚠️ Champions League: Tor-Korrektur (VAR)!`;
+            let pushBody = `Das Tor wurde nach Videobeweis zurückgenommen!\nNeuer Spielstand: ${home} - ${away} (${homeScore}:${awayScore})`;
+
+            // Visueller Alarm in der App
+            showVarCorrectionAlert(`${home} : ${away} (${homeScore}:${awayScore})`);
+
+            try {
+                await supabaseClient.from('sent_goals_championsliga').upsert({
+                    match_id: String(matchId),
+                    home_score: homeScore,
+                    away_score: awayScore,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'match_id' });
+
+                await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        table: 'push_subscriptions_championsliga',
+                        title: pushTitle,
+                        body: pushBody
+                    })
+                });
+            } catch (e) {
+                console.error("Fehler beim VAR-Push / Record:", e);
             }
         }
 
@@ -465,7 +494,20 @@
             document.getElementById("goalAlertTeam").textContent = `⭐ Champions League: ⚽Toooor für ${teamName}`;
             document.getElementById("goalAlertScorer").textContent = `erzielt durch ${scorerInfo}`;
             document.getElementById("goalAlertMatch").textContent = `Spielstand: ${matchInfo}`;
-            document.getElementById("goalAlertBanner").style.display = "block";
+            const banner = document.getElementById("goalAlertBanner");
+            banner.style.background = "linear-gradient(135deg, #0f1115, #1a2332)";
+            banner.style.display = "block";
+            setTimeout(() => { hideGoalAlert(); }, 10000);
+        }
+
+        function showVarCorrectionAlert(matchInfo) {
+            document.getElementById("goalAlertTeam").textContent = "⚠️ Champions League: Tor-Korrektur (VAR)!";
+            document.getElementById("goalAlertScorer").textContent = "Das Tor wurde nach Videobeweis zurückgenommen!";
+            document.getElementById("goalAlertMatch").textContent = `Neuer Spielstand: ${matchInfo}`;
+            const banner = document.getElementById("goalAlertBanner");
+            // Gelblicher/Orangerner Farbverlauf für VAR-Korrektur
+            banner.style.background = "linear-gradient(135deg, #36280c, #634d1e)";
+            banner.style.display = "block";
             setTimeout(() => { hideGoalAlert(); }, 10000);
         }
 
@@ -792,14 +834,18 @@
                         if (!cachedScore) {
                             sentGoalsCache[fixtureId] = { home: goalsHome, away: goalsAway };
                         } else {
+                            // 1. Fall: Normales neues Tor ist gefallen (Tore haben zugenommen)
                             if (goalsHome > cachedScore.home || goalsAway > cachedScore.away) {
                                 let scoringTeam = goalsHome > cachedScore.home ? home.name : away.name;
                                 let latestGoal = events.filter(ev => ev.type === 'Goal').pop();
                                 let scorerText = latestGoal ? `${latestGoal.player.name}, (${latestGoal.time.elapsed}')` : "Unbekannter Torschütze, (?')";
                                 
                                 showGoalAlert(scoringTeam, scorerText, `${home.name} : ${away.name}`);
-                                
                                 recordGoalAndNotify(fixtureId, home.name, away.name, goalsHome, goalsAway, latestGoal ? `${latestGoal.player.name}, (${latestGoal.time.elapsed}')` : '', scoringTeam);
+                            }
+                            // 2. Fall: Tor-Rücknahme durch VAR (Spielstand sinkt plötzlich)
+                            else if (goalsHome < cachedScore.home || goalsAway < cachedScore.away) {
+                                recordVarCorrectionAndNotify(fixtureId, home.name, away.name, goalsHome, goalsAway);
                             }
                         }
 
