@@ -297,7 +297,7 @@
         let globalTopScorers = [];
         let globalTopAssists = [];
         let globalYellowCards = [];
-        let sentGoalsCache = {};
+        let previousScores = {};
         let smartPollingInterval = null;
 
         function getTeamStyleClass(name) {
@@ -310,7 +310,6 @@
 
         async function init() {
             await checkApiStatus();
-            await loadSentGoalsCache();
             await loadRounds();
             loadTable();
             loadTopScorers();
@@ -351,25 +350,13 @@
             }
         }
 
-        async function loadSentGoalsCache() {
-            try {
-                const { data } = await supabaseClient.from('sent_goals_championsliga').select('*');
-                if (data) {
-                    data.forEach(row => {
-                        sentGoalsCache[row.match_id] = { home: row.home_score, away: row.away_score };
-                    });
-                }
-            } catch (e) {}
-        }
-
         async function recordGoalAndNotify(matchId, home, away, homeScore, awayScore, latestScorer, scoringTeam) {
-            sentGoalsCache[matchId] = { home: homeScore, away: awayScore };
-            
             let cleanPlayer = latestScorer ? latestScorer.replace(/⚽\s*/, '').replace(/\(\d+['']\)/, '').trim() : 'Unbekannt';
-            let minStr = latestScorer && latestScorer.match(/\(\d+['']\)/) ? ` (${latestScorer.match(/\(\d+['']\)/)[0]})` : '';
+            let matchMin = latestScorer && latestScorer.match(/\(\d+['']\)/);
+            let minStr = matchMin ? ` (${matchMin[0]})` : '';
 
             let pushTitle = `⭐ Champions League: ⚽Toooor für ${scoringTeam}`;
-            let pushBody = `erzielt durch ${cleanPlayer},${minStr}\nSpielstand: ${home} : ${away} (${homeScore}:${awayScore})`;
+            let pushBody = `erzielt durch ${cleanPlayer}${minStr}\nSpielstand: ${home} : ${away} (${homeScore}:${awayScore})`;
 
             try {
                 await supabaseClient.from('sent_goals_championsliga').upsert({
@@ -394,14 +381,10 @@
             }
         }
 
-        // Neue Funktion für Tor-Korrekturen / VAR-Rücknahme
         async function recordVarCorrectionAndNotify(matchId, home, away, homeScore, awayScore) {
-            sentGoalsCache[matchId] = { home: homeScore, away: awayScore };
-
             let pushTitle = `⚠️ Champions League: Tor-Korrektur (VAR)!`;
             let pushBody = `Das Tor wurde nach Videobeweis zurückgenommen!\nNeuer Spielstand: ${home} - ${away} (${homeScore}:${awayScore})`;
 
-            // Visueller Alarm in der App
             showVarCorrectionAlert(`${home} : ${away} (${homeScore}:${awayScore})`);
 
             try {
@@ -505,7 +488,6 @@
             document.getElementById("goalAlertScorer").textContent = "Das Tor wurde nach Videobeweis zurückgenommen!";
             document.getElementById("goalAlertMatch").textContent = `Neuer Spielstand: ${matchInfo}`;
             const banner = document.getElementById("goalAlertBanner");
-            // Gelblicher/Orangerner Farbverlauf für VAR-Korrektur
             banner.style.background = "linear-gradient(135deg, #36280c, #634d1e)";
             banner.style.display = "block";
             setTimeout(() => { hideGoalAlert(); }, 10000);
@@ -830,24 +812,20 @@
                         let isLive = ["1H", "2H", "ET", "P", "HT"].includes(m.fixture.status.short);
                         if (isLive) hasLiveGames = true;
 
-                        let cachedScore = sentGoalsCache[fixtureId];
-                        if (!cachedScore) {
-                            sentGoalsCache[fixtureId] = { home: goalsHome, away: goalsAway };
-                        } else {
-                            // 1. Fall: Normales neues Tor ist gefallen (Tore haben zugenommen)
-                            if (goalsHome > cachedScore.home || goalsAway > cachedScore.away) {
-                                let scoringTeam = goalsHome > cachedScore.home ? home.name : away.name;
+                        if (previousScores[fixtureId] !== undefined) {
+                            if (goalsHome > previousScores[fixtureId].home || goalsAway > previousScores[fixtureId].away) {
+                                let scoringTeam = goalsHome > previousScores[fixtureId].home ? home.name : away.name;
                                 let latestGoal = events.filter(ev => ev.type === 'Goal').pop();
-                                let scorerText = latestGoal ? `${latestGoal.player.name}, (${latestGoal.time.elapsed}')` : "Unbekannter Torschütze, (?')";
+                                let scorerText = latestGoal ? `⚽ ${latestGoal.player.name} (${latestGoal.time.elapsed}')` : "⚽ Tor";
                                 
-                                showGoalAlert(scoringTeam, scorerText, `${home.name} : ${away.name}`);
-                                recordGoalAndNotify(fixtureId, home.name, away.name, goalsHome, goalsAway, latestGoal ? `${latestGoal.player.name}, (${latestGoal.time.elapsed}')` : '', scoringTeam);
+                                showGoalAlert(scoringTeam, latestGoal ? `${latestGoal.player.name} (${latestGoal.time.elapsed}. Min)` : "Tor", `${home.name} - ${away.name}`);
+                                recordGoalAndNotify(fixtureId, home.name, away.name, goalsHome, goalsAway, latestGoal ? `${latestGoal.player.name} (${latestGoal.time.elapsed}')` : '', scoringTeam);
                             }
-                            // 2. Fall: Tor-Rücknahme durch VAR (Spielstand sinkt plötzlich)
-                            else if (goalsHome < cachedScore.home || goalsAway < cachedScore.away) {
+                            else if (goalsHome < previousScores[fixtureId].home || goalsAway < previousScores[fixtureId].away) {
                                 recordVarCorrectionAndNotify(fixtureId, home.name, away.name, goalsHome, goalsAway);
                             }
                         }
+                        previousScores[fixtureId] = { home: goalsHome, away: goalsAway };
 
                         let displayHome = m.goals.home !== null ? m.goals.home : "-";
                         let displayAway = m.goals.away !== null ? m.goals.away : "-";
@@ -880,6 +858,7 @@
                         itemDiv.innerHTML = `<div class="match-main-row"><div class="team home"><span>${home.name}</span><img src="${home.logo}"></div><div class="score-box"><div class="score">${displayHome} : ${displayAway}</div><span class="match-info-sub">${dateDisplay}</span></div><div class="team"><img src="${away.logo}"><span>${away.name}</span></div></div>${scorersHtml}`;
                         container.appendChild(itemDiv);
                     });
+
                     document.getElementById('tickerTrack').innerHTML = tickerHtml + tickerHtml;
 
                     manageSmartPolling(hasLiveGames);
