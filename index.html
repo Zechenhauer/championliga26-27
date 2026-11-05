@@ -352,7 +352,7 @@
 
         async function recordGoalAndNotify(matchId, home, away, homeScore, awayScore, latestScorer, scoringTeam) {
             let cleanPlayer = latestScorer ? latestScorer.replace(/⚽\s*/, '').replace(/\(\d+['']\)/, '').trim() : 'Unbekannt';
-            let matchMin = latestScorer && latestScorer.match(/\(\d+['']\)/);
+            let matchMin = latestScorer && latestScorer.match(/\d+['']\/);
             let minStr = matchMin ? ` (${matchMin[0]})` : '';
 
             let pushTitle = `⭐ Champions League: ⚽Toooor für ${scoringTeam}`;
