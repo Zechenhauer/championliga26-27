@@ -300,6 +300,44 @@
         let previousScores = {};
         let smartPollingInterval = null;
 
+        // Globaler Spieler-Foto-Cache
+        let playerPhotoCache = JSON.parse(localStorage.getItem('cl_player_photo_cache') || '{}');
+
+        function cachePlayerPhoto(playerId, photoUrl) {
+            if (playerId && photoUrl && !playerPhotoCache[playerId]) {
+                playerPhotoCache[playerId] = photoUrl;
+                localStorage.setItem('cl_player_photo_cache', JSON.stringify(playerPhotoCache));
+            }
+        }
+
+        // Automatisches Nachladen von fehlenden Spielerfotos über die API
+        async function fetchAndCachePlayerPhoto(playerId) {
+            if (!playerId || playerPhotoCache[playerId]) return;
+            try {
+                const res = await fetch(`https://v3.football.api-sports.io/players?id=${playerId}&season=${season}`, { headers: { "x-apisports-key": apiKey } });
+                const data = await res.json();
+                if (data.response && data.response.length > 0) {
+                    const p = data.response[0].player;
+                    if (p && p.photo) {
+                        cachePlayerPhoto(playerId, p.photo);
+                        document.querySelectorAll(`.player-img-${playerId}`).forEach(img => {
+                            img.src = p.photo;
+                            img.style.display = 'inline-block';
+                        });
+                    }
+                }
+            } catch (e) {}
+        }
+
+        function getPlayerPhotoHtml(playerId, size = '20px') {
+            if (!playerId) return '';
+            let photoUrl = playerPhotoCache[playerId] || '';
+            if (!photoUrl) {
+                fetchAndCachePlayerPhoto(playerId);
+            }
+            return `<img src="${photoUrl}" class="player-img-${playerId}" style="width:${size}; height:${size}; border-radius:50%; object-fit:cover; vertical-align:middle; margin-right:5px; ${!photoUrl ? 'display:none;' : ''}">`;
+        }
+
         function getTeamStyleClass(name) {
             if (name.includes("Bayern")) return { trClass: "bayern-team", hlClass: "bayern-highlight", tickerClass: "bayern-ticker" };
             if (name.includes("Dortmund")) return { trClass: "dortmund-team", hlClass: "dortmund-highlight", tickerClass: "dortmund-ticker" };
@@ -352,7 +390,7 @@
 
         async function recordGoalAndNotify(matchId, home, away, homeScore, awayScore, latestScorer, scoringTeam) {
             let cleanPlayer = latestScorer ? latestScorer.replace(/⚽\s*/, '').replace(/\(\d+['']\)/, '').trim() : 'Unbekannt';
-            let matchMin = latestScorer && latestScorer.match(/\d+['']\/);
+            let matchMin = latestScorer && latestScorer.match(/\d+['']/);
             let minStr = matchMin ? ` (${matchMin[0]})` : '';
 
             let pushTitle = `⭐ Champions League: ⚽Toooor für ${scoringTeam}`;
@@ -484,7 +522,7 @@
         }
 
         function showVarCorrectionAlert(matchInfo) {
-            document.getElementById("goalAlertTeam").textContent = "⚠️ Champions League: Tor-Korrektur (VAR)!";
+            document.getElementById("goalAlertTeam").textContent = "⭐ Champions League: Tor-Korrektur (VAR)!";
             document.getElementById("goalAlertScorer").textContent = "Das Tor wurde nach Videobeweis zurückgenommen!";
             document.getElementById("goalAlertMatch").textContent = `Neuer Spielstand: ${matchInfo}`;
             const banner = document.getElementById("goalAlertBanner");
@@ -496,15 +534,19 @@
         function hideGoalAlert() { document.getElementById("goalAlertBanner").style.display = "none"; }
 
         function manageSmartPolling(hasLiveGames) {
-            if (hasLiveGames && !smartPollingInterval) {
-                smartPollingInterval = setInterval(() => {
-                    if (currentMatchday) loadMatchday(currentMatchday, true);
-                    loadTable();
-                }, 60000);
-            } else if (!hasLiveGames && smartPollingInterval) {
+            if (smartPollingInterval) {
                 clearInterval(smartPollingInterval);
                 smartPollingInterval = null;
             }
+
+            const pollingIntervalTime = hasLiveGames ? 60000 : 180000;
+
+            smartPollingInterval = setInterval(() => {
+                if (currentMatchday) {
+                    loadMatchday(currentMatchday, true);
+                    loadTable();
+                }
+            }, pollingIntervalTime);
         }
 
         async function loadTopScorers() {
@@ -514,16 +556,18 @@
                 const data = await res.json();
                 if(data.response && data.response.length > 0) {
                     globalTopScorers = data.response;
+                    globalTopScorers.forEach(p => cachePlayerPhoto(p.player.id, p.player.photo));
                     let html = "";
                     for(let i = 0; i < Math.min(3, globalTopScorers.length); i++) {
                         let p = globalTopScorers[i];
                         let goals = p.statistics[0].goals.total ?? 0;
                         let teamName = p.statistics[0].team.name;
                         let styleObj = getTeamStyleClass(teamName);
+                        let photoHtml = getPlayerPhotoHtml(p.player.id, '20px');
                         html += `<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; padding:4px 0; border-bottom:1px solid var(--border-color);" class="${styleObj.hlClass}">
                             <div style="display:flex; align-items:center; gap:6px;">
                                 <b>${i+1}.</b>
-                                <img src="${p.player.photo}" style="width:20px; height:20px; border-radius:50%; object-fit:cover;">
+                                ${photoHtml}
                                 <span>${p.player.name}</span>
                             </div>
                             <span style="background:#21262d; padding:1px 6px; border-radius:4px; font-weight:bold; color:var(--accent-color);">${goals} Tore</span>
@@ -541,16 +585,18 @@
                 const data = await res.json();
                 if(data.response && data.response.length > 0) {
                     globalTopAssists = data.response;
+                    globalTopAssists.forEach(p => cachePlayerPhoto(p.player.id, p.player.photo));
                     let html = "";
                     for(let i = 0; i < Math.min(3, globalTopAssists.length); i++) {
                         let p = globalTopAssists[i];
                         let assists = p.statistics[0].goals.assists ?? 0;
                         let teamName = p.statistics[0].team.name;
                         let styleObj = getTeamStyleClass(teamName);
+                        let photoHtml = getPlayerPhotoHtml(p.player.id, '20px');
                         html += `<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; padding:4px 0; border-bottom:1px solid var(--border-color);" class="${styleObj.hlClass}">
                             <div style="display:flex; align-items:center; gap:6px;">
                                 <b>${i+1}.</b>
-                                <img src="${p.player.photo}" style="width:20px; height:20px; border-radius:50%; object-fit:cover;">
+                                ${photoHtml}
                                 <span>${p.player.name}</span>
                             </div>
                             <span style="background:#21262d; padding:1px 6px; border-radius:4px; font-weight:bold; color:var(--accent-color);">${assists} Assists</span>
@@ -568,16 +614,18 @@
                 const data = await res.json();
                 if(data.response && data.response.length > 0) {
                     globalYellowCards = data.response;
+                    globalYellowCards.forEach(p => cachePlayerPhoto(p.player.id, p.player.photo));
                     let html = "";
                     for(let i = 0; i < Math.min(3, globalYellowCards.length); i++) {
                         let p = globalYellowCards[i];
                         let cards = p.statistics[0].cards.yellow ?? 0;
                         let teamName = p.statistics[0].team.name;
                         let styleObj = getTeamStyleClass(teamName);
+                        let photoHtml = getPlayerPhotoHtml(p.player.id, '20px');
                         html += `<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; padding:4px 0; border-bottom:1px solid var(--border-color);" class="${styleObj.hlClass}">
                             <div style="display:flex; align-items:center; gap:6px;">
                                 <b>${i+1}.</b>
-                                <img src="${p.player.photo}" style="width:20px; height:20px; border-radius:50%; object-fit:cover;">
+                                ${photoHtml}
                                 <span>${p.player.name}</span>
                             </div>
                             <span style="background:#21262d; padding:1px 6px; border-radius:4px; font-weight:bold; color:#f0883e;">🟨 ${cards}</span>
@@ -680,7 +728,11 @@
                     let attackers = players.filter(p => p.position === 'Attacker');
 
                     function renderPlayerBadges(list) {
-                        return list.map(p => `<span style="background:#21262d; border:1px solid var(--border-color); padding:4px 8px; border-radius:6px; font-size:0.8rem; display:inline-block; margin:3px;">#${p.number !== null ? p.number : '?'} ${p.name} ${p.age ? '('+p.age+' J.)' : ''}</span>`).join(" ");
+                        return list.map(p => {
+                            cachePlayerPhoto(p.id, p.photo);
+                            let photoHtml = getPlayerPhotoHtml(p.id, '16px');
+                            return `<span style="background:#21262d; border:1px solid var(--border-color); padding:4px 8px; border-radius:6px; font-size:0.8rem; display:inline-flex; align-items:center; margin:3px;">${photoHtml}#${p.number !== null ? p.number : '?'} ${p.name} ${p.age ? '('+p.age+' J.)' : ''}</span>`;
+                        }).join(" ");
                     }
 
                     html += `
@@ -709,7 +761,8 @@
             globalTopScorers.forEach((p, index) => {
                 let stats = p.statistics[0];
                 let styleObj = getTeamStyleClass(stats.team.name);
-                html += `<tr class="${styleObj.trClass}"><td><b>${index+1}</b></td><td><div style="display:flex; align-items:center; gap:8px;"><img src="${p.player.photo}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;"><span>${p.player.name}</span></div></td><td><div style="display:flex; align-items:center; gap:6px;"><img src="${stats.team.logo}" style="width:16px; height:16px; object-fit:contain;"><span>${stats.team.name}</span></div></td><td class="center"><b>${stats.goals.total ?? 0}</b></td><td class="center">${stats.goals.penalty ?? 0}</td></tr>`;
+                let photoHtml = getPlayerPhotoHtml(p.player.id, '24px');
+                html += `<tr class="${styleObj.trClass}"><td><b>${index+1}</b></td><td><div style="display:flex; align-items:center; gap:8px;">${photoHtml}<span>${p.player.name}</span></div></td><td><div style="display:flex; align-items:center; gap:6px;"><img src="${stats.team.logo}" style="width:16px; height:16px; object-fit:contain;"><span>${stats.team.name}</span></div></td><td class="center"><b>${stats.goals.total ?? 0}</b></td><td class="center">${stats.goals.penalty ?? 0}</td></tr>`;
             });
             document.getElementById("fullScorersContainer").innerHTML = html + `</table>`;
         }
@@ -720,7 +773,8 @@
             globalTopAssists.forEach((p, index) => {
                 let stats = p.statistics[0];
                 let styleObj = getTeamStyleClass(stats.team.name);
-                html += `<tr class="${styleObj.trClass}"><td><b>${index+1}</b></td><td><div style="display:flex; align-items:center; gap:8px;"><img src="${p.player.photo}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;"><span>${p.player.name}</span></div></td><td><div style="display:flex; align-items:center; gap:6px;"><img src="${stats.team.logo}" style="width:16px; height:16px; object-fit:contain;"><span>${stats.team.name}</span></div></td><td class="center"><b>${stats.goals.assists ?? 0}</b></td></tr>`;
+                let photoHtml = getPlayerPhotoHtml(p.player.id, '24px');
+                html += `<tr class="${styleObj.trClass}"><td><b>${index+1}</b></td><td><div style="display:flex; align-items:center; gap:8px;">${photoHtml}<span>${p.player.name}</span></div></td><td><div style="display:flex; align-items:center; gap:6px;"><img src="${stats.team.logo}" style="width:16px; height:16px; object-fit:contain;"><span>${stats.team.name}</span></div></td><td class="center"><b>${stats.goals.assists ?? 0}</b></td></tr>`;
             });
             document.getElementById("fullAssistsContainer").innerHTML = html + `</table>`;
         }
@@ -731,7 +785,8 @@
             globalYellowCards.forEach((p, index) => {
                 let stats = p.statistics[0];
                 let styleObj = getTeamStyleClass(stats.team.name);
-                html += `<tr class="${styleObj.trClass}"><td><b>${index+1}</b></td><td><div style="display:flex; align-items:center; gap:8px;"><img src="${p.player.photo}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;"><span>${p.player.name}</span></div></td><td><span>${stats.team.name}</span></td><td class="center"><b>${stats.cards.yellow ?? 0}</b></td><td class="center">${stats.cards.yellowred ?? 0}</td><td class="center">${stats.cards.red ?? 0}</td></tr>`;
+                let photoHtml = getPlayerPhotoHtml(p.player.id, '24px');
+                html += `<tr class="${styleObj.trClass}"><td><b>${index+1}</b></td><td><div style="display:flex; align-items:center; gap:8px;">${photoHtml}<span>${p.player.name}</span></div></td><td><span>${stats.team.name}</span></td><td class="center"><b>${stats.cards.yellow ?? 0}</b></td><td class="center">${stats.cards.yellowred ?? 0}</td><td class="center">${stats.cards.red ?? 0}</td></tr>`;
             });
             document.getElementById("fullYellowCardsContainer").innerHTML = html + `</table>`;
         }
@@ -847,7 +902,8 @@
                             let cH = 0, cA = 0;
                             goalEvents.forEach(ge => {
                                 if (ge.team.id === home.id) cH++; else cA++;
-                                scorersHtml += `<div class="scorer-tag"><span class="scorer-score-badge">${cH}:${cA}</span><span>⚽ ${ge.time.elapsed}' ${ge.player.name}</span></div>`;
+                                let photoHtml = getPlayerPhotoHtml(ge.player.id, '18px');
+                                scorersHtml += `<div class="scorer-tag"><span class="scorer-score-badge">${cH}:${cA}</span><span style="display:inline-flex; align-items:center;">${photoHtml}⚽ ${ge.time.elapsed}' ${ge.player.name}</span></div>`;
                             });
                             scorersHtml += `</div>`;
                         }
@@ -902,7 +958,8 @@
                         match.events.forEach(ev => {
                             if (ev.type === 'Goal') {
                                 if (ev.team.id === home.id) hG++; else aG++;
-                                evHtml += `<div class="event-item"><div style="display:flex; align-items:center; gap:10px;"><span class="event-time">${ev.time.elapsed}'</span><span>⚽ <b>${ev.player.name}</b> (${ev.team.name})</span></div><span class="event-score">${hG}:${aG}</span></div>`;
+                                let photoHtml = getPlayerPhotoHtml(ev.player.id, '20px');
+                                evHtml += `<div class="event-item"><div style="display:flex; align-items:center; gap:10px;"><span class="event-time">${ev.time.elapsed}'</span><span style="display:flex; align-items:center;">${photoHtml}⚽ <b>${ev.player.name}</b> (${ev.team.name})</span></div><span class="event-score">${hG}:${aG}</span></div>`;
                             }
                         });
                     }
@@ -913,15 +970,34 @@
                         let lHome = lineupsData.response[0];
                         let lAway = lineupsData.response[1];
 
+                        lHome.startXI.forEach(p => cachePlayerPhoto(p.player.id, p.player.photo));
+                        lHome.substitutes.forEach(p => cachePlayerPhoto(p.player.id, p.player.photo));
+                        lAway.startXI.forEach(p => cachePlayerPhoto(p.player.id, p.player.photo));
+                        lAway.substitutes.forEach(p => cachePlayerPhoto(p.player.id, p.player.photo));
+
                         function formatTeamDetails(lineupObj, teamObj) {
-                            let start11 = lineupObj.startXI.map(p => `${p.player.name} (${p.player.pos})`).join(", ");
-                            let subs = lineupObj.substitutes.map(p => `${p.player.name}`).join(", ");
+                            let start11 = lineupObj.startXI.map(p => {
+                                let photoHtml = getPlayerPhotoHtml(p.player.id, '16px');
+                                return `<span style="display:inline-flex; align-items:center; margin-right:6px;">${photoHtml}${p.player.name} (${p.player.pos})</span>`;
+                            }).join(", ");
+
+                            let subs = lineupObj.substitutes.map(p => {
+                                let photoHtml = getPlayerPhotoHtml(p.player.id, '16px');
+                                return `<span style="display:inline-flex; align-items:center; margin-right:6px;">${photoHtml}${p.player.name}</span>`;
+                            }).join(", ");
+
                             let teamEvents = (match.events || []).filter(ev => ev.team.id === teamObj.id);
                             
-                            let subsEvents = teamEvents.filter(ev => ev.type === 'subst').map(ev => `<div style="font-size:0.8rem; color:var(--text-muted);">🔄 ${ev.time.elapsed}' Ein: ${ev.player.name} | Aus: ${ev.assist.name}</div>`).join("");
+                            let subsEvents = teamEvents.filter(ev => ev.type === 'subst').map(ev => {
+                                let pInPhoto = getPlayerPhotoHtml(ev.player.id, '16px');
+                                let pOutPhoto = getPlayerPhotoHtml(ev.assist.id, '16px');
+                                return `<div style="font-size:0.8rem; color:var(--text-muted); display:flex; align-items:center; gap:4px;">🔄 ${ev.time.elapsed}' Ein: ${pInPhoto}${ev.player.name} | Aus: ${pOutPhoto}${ev.assist.name}</div>`;
+                            }).join("");
+
                             let cardsEvents = teamEvents.filter(ev => ev.type === 'Card').map(ev => {
                                 let cIcon = ev.detail === 'Red Card' ? '🟥' : (ev.detail === 'Yellow Red Card' ? '🟨🟥' : '🟨');
-                                return `<div style="font-size:0.8rem; color:var(--text-muted);">${cIcon} ${ev.time.elapsed}' ${ev.player.name}</div>`;
+                                let photoHtml = getPlayerPhotoHtml(ev.player.id, '16px');
+                                return `<div style="font-size:0.8rem; color:var(--text-muted); display:flex; align-items:center; gap:4px;">${cIcon} ${photoHtml} ${ev.time.elapsed}' ${ev.player.name}</div>`;
                             }).join("");
 
                             return `
