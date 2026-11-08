@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>⭐ UEFA Champions League PRO Dashboard</title>
     
-    <!-- Supabase Client -->
+    <!-- Supabase Client Bibliothek laden -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- Champions League Homescreen Icon (SVG Inline) -->
@@ -59,6 +59,7 @@
         .admin-lock { background: #21262d; border: 1px solid var(--border-color); font-size: 0.9rem; cursor: pointer; color: var(--text-muted); padding: 6px 12px; border-radius: 6px; transition: all 0.2s; }
         .admin-lock.unlocked { color: var(--accent-color); border-color: var(--accent-color); background: rgba(0, 255, 135, 0.1); }
 
+        /* Laufband Design */
         .ticker-wrapper { width: 100%; background: #0c0809; border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; margin-bottom: 20px; display: flex; align-items: center; height: 48px; position: relative; }
         .ticker-label { background: var(--ucl-blue); color: #fff; font-size: 0.75rem; font-weight: bold; padding: 0 14px; height: 100%; display: flex; align-items: center; z-index: 3; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; box-shadow: 4px 0 10px rgba(0,0,0,0.5); }
         .ticker-content-box { overflow: hidden; white-space: nowrap; flex: 1; position: relative; display: flex; align-items: center; }
@@ -75,6 +76,7 @@
         .ticker-score { color: #ffffff; font-weight: bold; font-size: 0.9rem; background: #251216; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border-color); }
         @keyframes ticker-scroll { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }
 
+        /* Tor-Alarm / VAR Banner */
         #goalAlertBanner { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #0f1115, #1a2332); border: 2px solid var(--accent-color); box-shadow: 0 10px 30px rgba(0,255,135,0.3); border-radius: 14px; padding: 18px 24px; z-index: 2000; width: 90%; max-width: 480px; text-align: center; animation: bounce-in 0.5s ease; cursor: pointer; }
         @keyframes bounce-in { 0% { transform: translate(-50%, -30px); opacity: 0; } 100% { transform: translate(-50%, 0); opacity: 1; } }
         .goal-alert-title { font-size: 1.1rem; font-weight: 900; color: var(--accent-color); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -86,7 +88,6 @@
         button:hover, select:hover { background: #30363d; border-color: var(--accent-color); }
         select { padding-right: 30px; }
 
-        /* Live Polling Schalter Styling */
         .polling-toggle-btn { display: inline-flex; align-items: center; gap: 8px; font-weight: bold; }
         .polling-toggle-btn.active { background: rgba(0, 255, 135, 0.15); border-color: var(--accent-color); color: var(--accent-color); }
         .polling-toggle-btn.inactive { background: #21262d; border-color: var(--border-color); color: var(--text-muted); }
@@ -113,7 +114,24 @@
         .live-badge { background: var(--live-red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; animation: pulse-live 1.5s infinite; display: inline-block; }
         @keyframes pulse-live { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-        .match-scorers-preview { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); font-size: 0.8rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        /* Grafische Timeline direkt unter dem Spiel auf der Hauptseite */
+        .match-timeline-preview { position: relative; margin: 12px 0 8px 0; padding: 10px 5px; overflow-x: auto; background: #161b22; border-radius: 6px; border: 1px solid var(--border-color); }
+        .match-timeline-axis { position: absolute; top: 44px; left: 15px; right: 15px; height: 2px; background: var(--border-color); z-index: 1; }
+        .match-timeline-nodes { display: flex; gap: 18px; position: relative; z-index: 2; padding: 0 5px; width: max-content; align-items: flex-start; }
+        .match-timeline-node { display: flex; flex-direction: column; align-items: center; text-align: center; width: 84px; flex-shrink: 0; }
+        
+        .match-timeline-node.is-goal .match-timeline-player-img { border: 2px solid var(--accent-color); box-shadow: 0 0 10px rgba(0, 255, 135, 0.6); }
+        .match-timeline-node.is-goal .match-timeline-badge-mini { background: var(--accent-color); color: #000; font-weight: bold; font-size: 0.65rem; width: auto; padding: 0 6px; border-radius: 10px; bottom: -4px; right: -12px; box-shadow: 0 0 6px rgba(0, 255, 135, 0.8); white-space: nowrap; }
+        .match-timeline-node.is-goal .match-timeline-player { color: var(--accent-color); text-shadow: 0 0 4px rgba(0, 255, 135, 0.3); }
+
+        .match-timeline-avatar-container { position: relative; width: 32px; height: 32px; margin-bottom: 4px; z-index: 3; }
+        .match-timeline-player-img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); background: #21262d; }
+        .match-timeline-badge-mini { position: absolute; bottom: -2px; right: -2px; background: #0f1115; border: 1px solid var(--border-color); border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 0.55rem; }
+        .match-timeline-minute { font-size: 0.65rem; color: var(--text-muted); background: #21262d; padding: 1px 5px; border-radius: 4px; margin-bottom: 3px; font-weight: bold; }
+        .match-timeline-player { font-size: 0.68rem; font-weight: bold; color: var(--text-main); line-height: 1.1; word-break: break-word; max-width: 84px; }
+        .match-timeline-team { font-size: 0.6rem; color: var(--text-muted); margin-top: 2px; display: flex; align-items: center; justify-content: center; gap: 2px; }
+
+        .match-scorers-preview { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border-color); font-size: 0.8rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .scorer-tag { display: inline-flex; align-items: center; gap: 6px; background: #161b22; padding: 3px 10px; border-radius: 4px; border: 1px solid var(--border-color); width: 100%; max-width: 400px; justify-content: center; }
         .scorer-score-badge { font-weight: bold; color: var(--accent-color); background: #21262d; padding: 1px 6px; border-radius: 3px; font-size: 0.75rem; }
 
@@ -147,6 +165,7 @@
         tr.stuttgart-team td { border-color: rgba(227, 6, 19, 0.4); }
         .stuttgart-highlight { background: linear-gradient(90deg, rgba(230,230,230,0.15), rgba(227,6,19,0.25), rgba(230,230,230,0.15)); border-left: 4px solid var(--stuttgart-ring); padding-left: 6px; border-radius: 4px; }
 
+        /* Modals */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--card-bg); border: 1px solid var(--accent-color); border-radius: 12px; width: 100%; max-width: 750px; max-height: 90vh; overflow-y: auto; padding: 25px; position: relative; }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; background: none; border: none; }
@@ -155,10 +174,23 @@
         .modal-teams { display: flex; justify-content: space-around; align-items: center; font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; }
         .modal-teams img { width: 35px; height: 35px; object-fit: contain; }
         
-        .event-item { display: flex; align-items: center; justify-content: space-between; font-size: 0.88rem; padding: 6px 10px; border-bottom: 1px solid var(--border-color); color: var(--text-main); background: #161b22; margin-bottom: 5px; border-radius: 6px; }
-        .event-time { font-weight: bold; color: var(--accent-color); min-width: 35px; }
-        .event-score { background: #21262d; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; }
+        /* Grafische Timeline im Modal */
+        .timeline-wrapper { position: relative; margin: 25px 0 15px 0; padding: 15px 10px; overflow-x: auto; background: #161b22; border-radius: 8px; border: 1px solid var(--border-color); }
+        .timeline-axis { position: absolute; top: 58px; left: 20px; right: 20px; height: 3px; background: var(--border-color); z-index: 1; }
+        .timeline-nodes { display: flex; gap: 25px; position: relative; z-index: 2; padding: 0 10px; width: max-content; align-items: flex-start; }
+        .timeline-node { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100px; flex-shrink: 0; }
         
+        .timeline-node.is-goal .timeline-player-img { border: 2px solid var(--accent-color); box-shadow: 0 0 12px rgba(0, 255, 135, 0.7); }
+        .timeline-node.is-goal .timeline-badge-mini { background: var(--accent-color); color: #000; font-weight: bold; font-size: 0.7rem; width: auto; padding: 0 8px; border-radius: 10px; bottom: -4px; right: -15px; box-shadow: 0 0 8px rgba(0, 255, 135, 0.9); white-space: nowrap; }
+        .timeline-node.is-goal .timeline-player { color: var(--accent-color); text-shadow: 0 0 6px rgba(0, 255, 135, 0.4); }
+
+        .timeline-avatar-container { position: relative; width: 38px; height: 38px; margin-bottom: 6px; z-index: 3; }
+        .timeline-player-img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); background: #21262d; }
+        .timeline-badge-mini { position: absolute; bottom: -2px; right: -2px; background: #0f1115; border: 1px solid var(--border-color); border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; }
+        .timeline-minute { font-size: 0.7rem; color: var(--text-muted); background: #21262d; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px; font-weight: bold; }
+        .timeline-player { font-size: 0.72rem; font-weight: bold; color: var(--text-main); line-height: 1.2; word-break: break-word; max-width: 100px; }
+        .timeline-team { font-size: 0.65rem; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; justify-content: center; gap: 3px; }
+
         .stat-row { margin-bottom: 10px; font-size: 0.85rem; }
         .stat-info { display: flex; justify-content: space-between; margin-bottom: 3px; color: var(--text-muted); font-weight: 500; }
         .stat-bar-container { display: flex; height: 6px; background: #21262d; border-radius: 3px; overflow: hidden; gap: 2px; }
@@ -167,7 +199,7 @@
     </style>
 </head>
 <body>
-    <!-- Live Tor-Alarm Popup -->
+    <!-- Live Tor-Alarm / VAR Popup -->
     <div id="goalAlertBanner" onclick="hideGoalAlert()">
         <div class="goal-alert-title" id="goalAlertTeam">⭐ Champions League: ⚽Toooor!</div>
         <div class="goal-alert-scorer" id="goalAlertScorer">Torschütze & Minute</div>
@@ -271,7 +303,7 @@
                 <div id="modalReferee" style="color: var(--accent-color); font-size: 0.8rem;"></div>
             </div>
             <div style="margin-top: 15px;">
-                <h3 style="font-size: 1rem; color: var(--accent-color); margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">Tore & Spielverlauf</h3>
+                <h3 style="font-size: 1rem; color: var(--accent-color); margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">Grafischer Spielverlauf (Timeline)</h3>
                 <div id="modalEvents">Lade Spieldetails...</div>
             </div>
             <div style="margin-top: 20px;">
@@ -317,11 +349,10 @@
         let globalTopScorers = [];
         let globalTopAssists = [];
         let globalYellowCards = [];
-        let previousScores = {};
+        let previousScores = JSON.parse(localStorage.getItem('cl_previous_scores') || '{}');
         let smartPollingInterval = null;
         let isLivePollingEnabled = true;
 
-        // Globaler Spieler-Foto-Cache
         let playerPhotoCache = JSON.parse(localStorage.getItem('cl_player_photo_cache') || '{}');
 
         function cachePlayerPhoto(playerId, photoUrl) {
@@ -331,7 +362,6 @@
             }
         }
 
-        // Automatisches Nachladen von fehlenden Spielerfotos über die API
         async function fetchAndCachePlayerPhoto(playerId) {
             if (!playerId || playerPhotoCache[playerId]) return;
             try {
@@ -431,34 +461,40 @@
             }
         }
 
-        async function recordGoalAndNotify(matchId, home, away, homeScore, awayScore, latestScorer, scoringTeam) {
-            let cleanPlayer = latestScorer ? latestScorer.replace(/⚽\s*/, '').replace(/\(\d+['']\)/, '').trim() : 'Unbekannt';
-            let matchMin = latestScorer && latestScorer.match(/\d+['']/);
-            let minStr = matchMin ? ` (${matchMin[0]})` : '';
+        async function checkAllGoalsAndNotify(home, away, hScore, aScore, latestScorer, matchId, scoringTeam) {
+            if (!latestScorer || latestScorer.includes("Tor") || latestScorer.trim() === "⚽") return;
 
-            let pushTitle = `⭐ Champions League: ⚽Toooor für ${scoringTeam}`;
-            let pushBody = `erzielt durch ${cleanPlayer}${minStr}\nSpielstand: ${home} : ${away} (${homeScore}:${awayScore})`;
+            let uniqueGoalId = `${matchId}_${hScore}:${aScore}_${latestScorer}`;
+            let cleanPlayer = latestScorer.replace(/⚽\s*/, '').replace(/\(\d+['']\)/, '').replace('(Pen)', '').replace('(ET)', '').trim();
+            let minStr = latestScorer.match(/\(\d+['']\)/) ? ` ${latestScorer.match(/\(\d+['']\)/)[0]}` : '';
 
             try {
-                await supabaseClient.from('sent_goals_championsliga').upsert({
-                    match_id: String(matchId),
-                    home_score: homeScore,
-                    away_score: awayScore,
-                    updated_at: new Date().toISOString()
-                }, { onConflict: 'match_id' });
+                let { data: existing, error: checkError } = await supabaseClient
+                    .from('sent_goals_championsliga')
+                    .select('goal_id')
+                    .eq('goal_id', uniqueGoalId)
+                    .maybeSingle();
 
-                await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        table: 'push_subscriptions_championsliga',
-                        title: pushTitle,
-                        body: pushBody
-                    })
-                });
+                if (!existing && !checkError) {
+                    let { error: insertError } = await supabaseClient
+                        .from('sent_goals_championsliga')
+                        .insert([{ goal_id: uniqueGoalId }]);
+
+                    if (!insertError) {
+                        await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
+                            method: 'POST',
+                            mode: 'cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                table: 'push_subscriptions_championsliga',
+                                title: `⭐ Champions League: ⚽ TOR für ${scoringTeam} zum ${hScore}:${aScore}!`,
+                                body: `Torschütze: ${cleanPlayer}${minStr}\n${home} : ${away} (${hScore}:${aScore})`
+                            })
+                        });
+                    }
+                }
             } catch (e) {
-                console.error("Fehler beim Push / Record:", e);
+                console.error("Fehler beim CL Tor-Cache & Push:", e);
             }
         }
 
@@ -469,13 +505,6 @@
             showVarCorrectionAlert(`${home} : ${away} (${homeScore}:${awayScore})`);
 
             try {
-                await supabaseClient.from('sent_goals_championsliga').upsert({
-                    match_id: String(matchId),
-                    home_score: homeScore,
-                    away_score: awayScore,
-                    updated_at: new Date().toISOString()
-                }, { onConflict: 'match_id' });
-
                 await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
                     method: 'POST',
                     mode: 'cors',
@@ -487,7 +516,7 @@
                     })
                 });
             } catch (e) {
-                console.error("Fehler beim VAR-Push / Record:", e);
+                console.error("Fehler beim CL VAR-Push:", e);
             }
         }
 
@@ -543,8 +572,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         table: 'push_subscriptions_championsliga',
-                        title: "⭐ Champions League: ⚽Toooor für FC Bayern München",
-                        body: "erzielt durch Harry Kane, (42')\nSpielstand: FC Bayern München : Real Madrid"
+                        title: "⭐ Champions League Tor-Alarm (Test)",
+                        body: "Test-Alarm über Supabase Edge Function erfolgreich ausgelöst!"
                     })
                 });
                 if (response.ok) alert("Test-Push erfolgreich ausgelöst!");
@@ -555,9 +584,9 @@
         }
 
         function showGoalAlert(teamName, scorerInfo, matchInfo) {
-            document.getElementById("goalAlertTeam").textContent = `⭐ Champions League: ⚽Toooor für ${teamName}`;
-            document.getElementById("goalAlertScorer").textContent = `erzielt durch ${scorerInfo}`;
-            document.getElementById("goalAlertMatch").textContent = `Spielstand: ${matchInfo}`;
+            document.getElementById("goalAlertTeam").textContent = `⭐ Champions League: ⚽Toooor für ${teamName}!`;
+            document.getElementById("goalAlertScorer").textContent = scorerInfo;
+            document.getElementById("goalAlertMatch").textContent = matchInfo;
             const banner = document.getElementById("goalAlertBanner");
             banner.style.background = "linear-gradient(135deg, #0f1115, #1a2332)";
             banner.style.display = "block";
@@ -584,7 +613,7 @@
 
             if (!isLivePollingEnabled) return;
 
-            const pollingIntervalTime = hasLiveGames ? 60000 : 180000;
+            const pollingIntervalTime = hasLiveGames ? 30000 : 120000;
 
             smartPollingInterval = setInterval(() => {
                 if (currentMatchday && isLivePollingEnabled) {
@@ -910,22 +939,33 @@
                         const goalsAway = m.goals.away ?? 0;
 
                         let isLive = ["1H", "2H", "ET", "P", "HT"].includes(m.fixture.status.short);
-                        if (isLive) hasLiveGames = true;
-
-                        if (previousScores[fixtureId] !== undefined) {
-                            if (goalsHome > previousScores[fixtureId].home || goalsAway > previousScores[fixtureId].away) {
-                                let scoringTeam = goalsHome > previousScores[fixtureId].home ? home.name : away.name;
-                                let latestGoal = events.filter(ev => ev.type === 'Goal').pop();
-                                let scorerText = latestGoal ? `⚽ ${latestGoal.player.name} (${latestGoal.time.elapsed}')` : "⚽ Tor";
+                        if (isLive) {
+                            hasLiveGames = true;
+                            
+                            let prevKey = `match_${fixtureId}`;
+                            if (previousScores[prevKey]) {
+                                let prevHome = previousScores[prevKey].home;
+                                let prevAway = previousScores[prevKey].away;
                                 
-                                showGoalAlert(scoringTeam, latestGoal ? `${latestGoal.player.name} (${latestGoal.time.elapsed}. Min)` : "Tor", `${home.name} - ${away.name}`);
-                                recordGoalAndNotify(fixtureId, home.name, away.name, goalsHome, goalsAway, latestGoal ? `${latestGoal.player.name} (${latestGoal.time.elapsed}')` : '', scoringTeam);
+                                if ((goalsHome + goalsAway) < (prevHome + prevAway)) {
+                                    recordVarCorrectionAndNotify(fixtureId, home.name, away.name, goalsHome, goalsAway);
+                                }
                             }
-                            else if (goalsHome < previousScores[fixtureId].home || goalsAway < previousScores[fixtureId].away) {
-                                recordVarCorrectionAndNotify(fixtureId, home.name, away.name, goalsHome, goalsAway);
+                            previousScores[prevKey] = { home: goalsHome, away: goalsAway };
+                            localStorage.setItem('cl_previous_scores', JSON.stringify(previousScores));
+
+                            let latestScorer = "";
+                            let scoringTeam = "";
+                            if (events && events.length > 0) {
+                                let goalEvents = events.filter(ev => ev.type === 'Goal');
+                                if (goalEvents.length > 0) {
+                                    let lastGoal = goalEvents[goalEvents.length - 1];
+                                    latestScorer = `${lastGoal.player?.name || ''} (${lastGoal.time?.elapsed || ''}')`;
+                                    scoringTeam = lastGoal.team?.id === home.id ? home.name : away.name;
+                                }
                             }
+                            checkAllGoalsAndNotify(home.name, away.name, goalsHome, goalsAway, latestScorer, fixtureId, scoringTeam);
                         }
-                        previousScores[fixtureId] = { home: goalsHome, away: goalsAway };
 
                         let displayHome = m.goals.home !== null ? m.goals.home : "-";
                         let displayAway = m.goals.away !== null ? m.goals.away : "-";
@@ -940,33 +980,72 @@
 
                         tickerHtml += `<span class="ticker-item ${activeTickerClass}"><img src="${home.logo}" class="ticker-team-logo">${home.name} <span class="ticker-score">${displayHome}:${displayAway}</span> ${away.name} <img src="${away.logo}" class="ticker-team-logo"></span>`;
 
-                        let scorersHtml = "";
-                        let relevantEvents = events.filter(ev => ev.type === 'Goal' || ev.type === 'Card');
+                        // Grafische Timeline (Nur Tore und Karten)
+                        let matchTimelineHtml = "";
+                        let relevantTimelineEvents = events.filter(ev => ['Goal', 'Card'].includes(ev.type));
                         
-                        if (relevantEvents.length > 0) {
+                        if (relevantTimelineEvents.length > 0) {
+                            matchTimelineHtml = `<div class="match-timeline-preview"><div class="match-timeline-axis"></div><div class="match-timeline-nodes">`;
+                            let tH = 0, tA = 0;
+
+                            relevantTimelineEvents.forEach(ev => {
+                                let isGoal = ev.type === 'Goal';
+                                let icon = '⚽';
+
+                                if (isGoal) {
+                                    if (ev.team.id === home.id) tH++; else tA++;
+                                    icon = `⚽ ${tH}:${tA}`;
+                                } else if (ev.type === 'Card') {
+                                    let detail = (ev.detail || '').toLowerCase();
+                                    let comments = (ev.comments || '').toLowerCase();
+                                    if (detail.includes('second yellow') || detail.includes('yellow/red') || detail.includes('yellowred') || (detail.includes('red') && detail.includes('yellow')) || comments.includes('yellow/red')) {
+                                        icon = '🟨🟥';
+                                    } else if (detail.includes('red') || comments.includes('red card')) {
+                                        icon = '🟥';
+                                    } else {
+                                        icon = '🟨';
+                                    }
+                                }
+
+                                let playerId = ev.player ? ev.player.id : null;
+                                let playerName = ev.player ? ev.player.name : '';
+                                let photoUrl = playerId ? (playerPhotoCache[playerId] || '') : '';
+                                if (playerId && !photoUrl) {
+                                    fetchAndCachePlayerPhoto(playerId);
+                                }
+
+                                let isHomeEv = ev.team.id === home.id;
+                                let teamLogo = isHomeEv ? home.logo : away.logo;
+                                let teamNameShort = isHomeEv ? home.name : away.name;
+
+                                matchTimelineHtml += `
+                                    <div class="match-timeline-node ${isGoal ? 'is-goal' : ''}">
+                                        <div class="match-timeline-minute">${ev.time.elapsed}'</div>
+                                        <div class="match-timeline-avatar-container">
+                                            <img src="${photoUrl || 'https://via.placeholder.com/32'}" class="match-timeline-player-img player-img-${playerId}" alt="${playerName}">
+                                            <div class="match-timeline-badge-mini" title="${isGoal ? 'Torstand: ' + tH + ':' + tA : 'Aktion'}">${icon}</div>
+                                        </div>
+                                        <div class="match-timeline-player" title="${playerName}">${playerName}</div>
+                                        <div class="match-timeline-team">
+                                            <img src="${teamLogo}" style="width:12px; height:12px; object-fit:contain;" alt="${teamNameShort}">
+                                            <span>${isHomeEv ? 'Heim' : 'Gast'}</span>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            matchTimelineHtml += `</div></div>`;
+                        }
+
+                        let scorersHtml = "";
+                        let goalEvents = events.filter(ev => ev.type === 'Goal');
+                        if (goalEvents.length > 0) {
                             scorersHtml = `<div class="match-scorers-preview">`;
                             let cH = 0, cA = 0;
                             
-                            relevantEvents.forEach(ge => {
-                                let photoHtml = getPlayerPhotoHtml(ge.player.id, '18px');
-                                
-                                if (ge.type === 'Goal') {
-                                    if (ge.team.id === home.id) cH++; else cA++;
-                                    scorersHtml += `<div class="scorer-tag"><span class="scorer-score-badge">${cH}:${cA}</span><span style="display:inline-flex; align-items:center;">${photoHtml}⚽ ${ge.time.elapsed}' ${ge.player.name}</span></div>`;
-                                } else if (ge.type === 'Card') {
-                                    let detail = (ge.detail || '').toLowerCase();
-                                    let comments = (ge.comments || '').toLowerCase();
-                                    let cIcon = '🟨';
-                                    
-                                    // Robuste Gelb-Rot-Erkennung
-                                    if (detail.includes('second yellow') || detail.includes('yellow/red') || detail.includes('yellowred') || (detail.includes('red') && detail.includes('yellow')) || comments.includes('yellow/red') || comments.includes('second yellow')) {
-                                        cIcon = '🟨🟥';
-                                    } else if (detail.includes('red') || comments.includes('red card')) {
-                                        cIcon = '🟥';
-                                    }
-                                    
-                                    scorersHtml += `<div class="scorer-tag" style="color:var(--text-muted);"><span style="display:inline-flex; align-items:center;">${photoHtml}${cIcon} ${ge.time.elapsed}' ${ge.player.name} (${ge.team.name.includes(home.name) ? home.name : away.name})</span></div>`;
-                                }
+                            goalEvents.forEach(ge => {
+                                let photoHtml = getPlayerPhotoHtml(ge.player.id, '16px');
+                                if (ge.team.id === home.id) cH++; else cA++;
+                                scorersHtml += `<div class="scorer-tag"><span class="scorer-score-badge">${cH}:${cA}</span><span style="display:inline-flex; align-items:center;">${photoHtml}⚽ ${ge.time.elapsed}' ${ge.player.name}</span></div>`;
                             });
                             scorersHtml += `</div>`;
                         }
@@ -974,10 +1053,17 @@
                         const itemDiv = document.createElement("div");
                         itemDiv.className = "match-card-item " + activeHighlightClass;
                         itemDiv.onclick = () => openMatchDetails(m.fixture.id);
-                        itemDiv.innerHTML = `<div class="match-main-row"><div class="team home"><span>${home.name}</span><img src="${home.logo}"></div><div class="score-box"><div class="score">${displayHome} : ${displayAway}</div><span class="match-info-sub">${dateDisplay}</span></div><div class="team"><img src="${away.logo}"><span>${away.name}</span></div></div>${scorersHtml}`;
+                        itemDiv.innerHTML = `
+                            <div class="match-main-row">
+                                <div class="team home"><span>${home.name}</span><img src="${home.logo}"></div>
+                                <div class="score-box"><div class="score">${displayHome} : ${displayAway}</div><span class="match-info-sub">${dateDisplay}</span></div>
+                                <div class="team"><img src="${away.logo}"><span>${away.name}</span></div>
+                            </div>
+                            ${matchTimelineHtml}
+                            ${scorersHtml}
+                        `;
                         container.appendChild(itemDiv);
                     });
-
                     document.getElementById('tickerTrack').innerHTML = tickerHtml + tickerHtml;
 
                     manageSmartPolling(hasLiveGames);
@@ -989,7 +1075,7 @@
             const modal = document.getElementById("matchModal");
             modal.style.display = "flex";
             document.getElementById("modalTeamsHeader").innerHTML = "Lade Spieldetails...";
-            document.getElementById("modalEvents").innerHTML = "Lade Tore...";
+            document.getElementById("modalEvents").innerHTML = "Lade Spielverlauf...";
             document.getElementById("modalLineups").innerHTML = "Lade Aufstellungen, Wechsel & Karten...";
             document.getElementById("modalStats").innerHTML = "Lade Statistiken...";
             document.getElementById("modalStatus").textContent = "";
@@ -1015,18 +1101,64 @@
                     document.getElementById("modalStatus").textContent = `Status: ${match.fixture.status.long}`;
                     if(match.fixture.referee) document.getElementById("modalReferee").textContent = `👨‍⚖️ Schiedsrichter: ${match.fixture.referee}`;
 
-                    let evHtml = "";
-                    if (match.events) {
-                        let hG = 0, aG = 0;
-                        match.events.forEach(ev => {
-                            if (ev.type === 'Goal') {
-                                if (ev.team.id === home.id) hG++; else aG++;
-                                let photoHtml = getPlayerPhotoHtml(ev.player.id, '20px');
-                                evHtml += `<div class="event-item"><div style="display:flex; align-items:center; gap:10px;"><span class="event-time">${ev.time.elapsed}'</span><span style="display:flex; align-items:center;">${photoHtml}⚽ <b>${ev.player.name}</b> (${ev.team.name})</span></div><span class="event-score">${hG}:${aG}</span></div>`;
-                            }
-                        });
+                    let timelineHtml = "Keine Ereignisse vorhanden.";
+                    if (match.events && match.events.length > 0) {
+                        let filteredEvents = match.events.filter(ev => ['Goal', 'Card', 'subst'].includes(ev.type));
+                        if (filteredEvents.length > 0) {
+                            timelineHtml = `<div class="timeline-wrapper"><div class="timeline-axis"></div><div class="timeline-nodes">`;
+                            let tH = 0, tA = 0;
+
+                            filteredEvents.forEach(ev => {
+                                let isGoal = ev.type === 'Goal';
+                                let icon = '⚽';
+
+                                if (isGoal) {
+                                    if (ev.team.id === home.id) tH++; else tA++;
+                                    icon = `⚽ ${tH}:${tA}`;
+                                } else if (ev.type === 'Card') {
+                                    let detail = (ev.detail || '').toLowerCase();
+                                    let comments = (ev.comments || '').toLowerCase();
+                                    if (detail.includes('second yellow') || detail.includes('yellow/red') || detail.includes('yellowred') || (detail.includes('red') && detail.includes('yellow')) || comments.includes('yellow/red')) {
+                                        icon = '🟨🟥';
+                                    } else if (detail.includes('red') || comments.includes('red card')) {
+                                        icon = '🟥';
+                                    } else {
+                                        icon = '🟨';
+                                    }
+                                } else if (ev.type === 'subst') {
+                                    icon = '🔄';
+                                }
+
+                                let playerId = ev.player ? ev.player.id : null;
+                                let playerName = ev.player ? ev.player.name : '';
+                                let photoUrl = playerId ? (playerPhotoCache[playerId] || '') : '';
+                                if (playerId && !photoUrl) {
+                                    fetchAndCachePlayerPhoto(playerId);
+                                }
+
+                                let isHome = ev.team.id === home.id;
+                                let teamLogo = isHome ? home.logo : away.logo;
+                                let teamNameShort = isHome ? home.name : away.name;
+
+                                timelineHtml += `
+                                    <div class="timeline-node ${isGoal ? 'is-goal' : ''}">
+                                        <div class="timeline-minute">${ev.time.elapsed}'</div>
+                                        <div class="timeline-avatar-container">
+                                            <img src="${photoUrl || 'https://via.placeholder.com/38'}" class="timeline-player-img player-img-${playerId}" alt="${playerName}">
+                                            <div class="timeline-badge-mini" title="${isGoal ? 'Torstand: ' + tH + ':' + tA : 'Aktion'}">${icon}</div>
+                                        </div>
+                                        <div class="timeline-player" title="${playerName}">${playerName}</div>
+                                        <div class="timeline-team">
+                                            <img src="${teamLogo}" style="width:14px; height:14px; object-fit:contain;" alt="${teamNameShort}">
+                                            <span>${isHome ? 'Heim' : 'Gast'}</span>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            timelineHtml += `</div></div>`;
+                        }
                     }
-                    document.getElementById("modalEvents").innerHTML = evHtml !== "" ? evHtml : "Keine Tore.";
+                    document.getElementById("modalEvents").innerHTML = timelineHtml;
 
                     let lineupsHtml = "Aufstellungen noch nicht verfügbar.";
                     if (lineupsData.response && lineupsData.response.length === 2) {
@@ -1041,28 +1173,29 @@
                         function formatTeamDetails(lineupObj, teamObj) {
                             let start11 = lineupObj.startXI.map(p => {
                                 let photoHtml = getPlayerPhotoHtml(p.player.id, '16px');
-                                return `<span style="display:inline-flex; align-items:center; margin-right:6px;">${photoHtml}${p.player.name} (${p.player.pos})</span>`;
+                                return `<span style="display:inline-flex; align-items:center; margin-right:6px;">${photoHtml}#${p.player.number || '-'} ${p.player.name} (${p.player.pos})</span>`;
                             }).join(", ");
 
                             let subs = lineupObj.substitutes.map(p => {
                                 let photoHtml = getPlayerPhotoHtml(p.player.id, '16px');
-                                return `<span style="display:inline-flex; align-items:center; margin-right:6px;">${photoHtml}${p.player.name}</span>`;
+                                return `<span style="display:inline-flex; align-items:center; margin-right:6px;">${photoHtml}#${p.player.number || '-'} ${p.player.name}</span>`;
                             }).join(", ");
-
+                            
                             let teamEvents = (match.events || []).filter(ev => ev.team.id === teamObj.id);
                             
+                            // Korrigierte Auswechslungs-Zuordnung (ev.assist = Ein, ev.player = Aus)
                             let subsEvents = teamEvents.filter(ev => ev.type === 'subst').map(ev => {
-                                let pInPhoto = getPlayerPhotoHtml(ev.player.id, '16px');
-                                let pOutPhoto = getPlayerPhotoHtml(ev.assist.id, '16px');
-                                return `<div style="font-size:0.8rem; color:var(--text-muted); display:flex; align-items:center; gap:4px;">🔄 ${ev.time.elapsed}' Ein: ${pInPhoto}${ev.player.name} | Aus: ${pOutPhoto}${ev.assist.name}</div>`;
+                                let pInPhoto = getPlayerPhotoHtml(ev.assist?.id, '16px');
+                                let pOutPhoto = getPlayerPhotoHtml(ev.player?.id, '16px');
+                                return `<div style="font-size:0.8rem; color:var(--text-muted); display:flex; align-items:center; gap:4px;">🔄 ${ev.time.elapsed}' Ein: ${pInPhoto}${ev.assist?.name || ''} | Aus: ${pOutPhoto}${ev.player?.name || ''}</div>`;
                             }).join("");
-
+                            
                             let cardsEvents = teamEvents.filter(ev => ev.type === 'Card').map(ev => {
                                 let detail = (ev.detail || '').toLowerCase();
                                 let comments = (ev.comments || '').toLowerCase();
                                 let cIcon = '🟨';
                                 
-                                if (detail.includes('second yellow') || detail.includes('yellow/red') || detail.includes('yellowred') || (detail.includes('red') && detail.includes('yellow')) || comments.includes('yellow/red') || comments.includes('second yellow')) {
+                                if (detail.includes('second yellow') || detail.includes('yellow/red') || detail.includes('yellowred') || (detail.includes('red') && detail.includes('yellow')) || comments.includes('yellow/red')) {
                                     cIcon = '🟨🟥';
                                 } else if (detail.includes('red') || comments.includes('red card')) {
                                     cIcon = '🟥';
