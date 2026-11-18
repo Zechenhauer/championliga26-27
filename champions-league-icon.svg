@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Dunkler App-Hintergrund -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#131c2e" />
+      <stop offset="100%" stop-color="#0b0f19" />
+    </linearGradient>
+    <!-- Edler Gold-Farbverlauf -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5d77f" />
+      <stop offset="50%" stop-color="#d4af37" />
+      <stop offset="100%" stop-color="#aa8c2c" />
+    </linearGradient>
+  </defs>
+
+  <!-- App-Icon Hintergrund mit abgerundeten Ecken (iOS / Android Style) -->
+  <rect x="32" y="32" width="448" height="448" rx="104" fill="url(#bgGrad)" stroke="#d4af37" stroke-width="6" />
+
+  <!-- Der ikonische Champions League Sternenball oben -->
+  <g transform="translate(256, 172)">
+    <!-- Zentraler Fußball -->
+    <circle cx="0" cy="0" r="38" fill="url(#goldGrad)" stroke="#0b0f19" stroke-width="2.5" />
+    <!-- Ball-Muster Linien -->
+    <path d="M 0 -38 L 0 38 M -26 -26 L 26 26 M -26 26 L 26 -26" stroke="#0b0f19" stroke-width="2" />
+    
+    <!-- Die 8 charakteristischen CL-Sterne, die sternförmig vom Ball ausgehen -->
+    <!-- 1. Oben -->
+    <polygon points="0,-92 11,-44 48,-58 22,-28 62,-9 14,-2" fill="url(#goldGrad)" />
+    <!-- 2. Oben-Rechts -->
+    <polygon points="65,-65 38,-33 68,-14 31,-10 42,24 13,2" fill="url(#goldGrad)" />
+    <!-- 3. Rechts -->
+    <polygon points="92,0 46,-11 60,-46 28,-22 9,-60 2,-16" fill="url(#goldGrad)" />
+    <!-- 4. Unten-Rechts -->
+    <polygon points="65,65 33,38 14,68 10,31 -24,42 -2,13" fill="url(#goldGrad)" />
+    <!-- 5. Unten -->
+    <polygon points="0,92 -11,44 -48,58 -22,28 -62,9 -14,2" fill="url(#goldGrad)" />
+    <!-- 6. Unten-Links -->
+    <polygon points="-65,65 -38,38 -68,14 -31,10 -42,-24 -13,-2" fill="url(#goldGrad)" />
+    <!-- 7. Links -->
+    <polygon points="-92,0 -46,11 -60,46 -28,22 -9,60 -2,16" fill="url(#goldGrad)" />
+    <!-- 8. Oben-Links -->
+    <polygon points="-65,-65 -33,-38 -14,-68 -10,-31 24,-42 2,-13" fill="url(#goldGrad)" />
+  </g>
+
+  <!-- UEFA Textbogen -->
+  <text x="256" y="270" font-family="-apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, sans-serif" font-size="26" font-weight="800" fill="url(#goldGrad)" text-anchor="middle" letter-spacing="6">UEFA</text>
+
+  <!-- CHAMPIONS LEAGUE Text -->
+  <text x="256" y="338" font-family="-apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, sans-serif" font-size="33" font-weight="800" fill="url(#goldGrad)" text-anchor="middle" letter-spacing="1">CHAMPIONS</text>
+  <text x="256" y="388" font-family="-apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, sans-serif" font-size="33" font-weight="800" fill="url(#goldGrad)" text-anchor="middle" letter-spacing="3.5">LEAGUE</text>
+</svg>
