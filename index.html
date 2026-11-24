@@ -461,36 +461,60 @@
         }
 
         async function checkAllGoalsAndNotify(home, away, hScore, aScore, latestScorer, matchId, scoringTeam) {
-            if (!latestScorer || latestScorer.includes("Tor") || latestScorer.trim() === "⚽") return;
+            if ((hScore + aScore) === 0) return;
 
-            let uniqueGoalId = `${matchId}_${hScore}:${aScore}_${latestScorer}`;
-            let cleanPlayer = latestScorer.replace(/⚽\s*/, '').replace(/\(\d+['']\)/, '').replace('(Pen)', '').replace('(ET)', '').trim();
-            let minStr = latestScorer.match(/\(\d+['']\)/) ? ` ${latestScorer.match(/\(\d+['']\)/)[0]}` : '';
+            const matchIdStr = String(matchId);
+            const cleanPlayer = (latestScorer || '')
+                .replace(/⚽\s*/g, '')
+                .replace(/\(\d+['’]?\)/g, '')
+                .replace('(Pen)', '')
+                .replace('(ET)', '')
+                .trim();
+            const minMatch = (latestScorer || '').match(/\(\d+['’]?\)/);
+            const minStr = minMatch ? ` ${minMatch[0]}` : '';
 
             try {
-                let { data: existing, error: checkError } = await supabaseClient
+                const { data: existing, error: checkError } = await supabaseClient
                     .from('sent_goals_championsliga')
-                    .select('goal_id')
-                    .eq('goal_id', uniqueGoalId)
+                    .select('match_id, home_score, away_score')
+                    .eq('match_id', matchIdStr)
                     .maybeSingle();
 
-                if (!existing && !checkError) {
-                    let { error: insertError } = await supabaseClient
-                        .from('sent_goals_championsliga')
-                        .insert([{ goal_id: uniqueGoalId }]);
+                if (checkError) {
+                    console.error("Supabase select Fehler:", checkError);
+                    return;
+                }
 
-                    if (!insertError) {
-                        await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
-                            method: 'POST',
-                            mode: 'cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                table: 'push_subscriptions_championsliga',
-                                title: `⭐ Champions League: ⚽ TOR für ${scoringTeam} zum ${hScore}:${aScore}!`,
-                                body: `Torschütze: ${cleanPlayer}${minStr}\n${home} : ${away} (${hScore}:${aScore})`
-                            })
-                        });
+                const isNewGoal = !existing || (hScore > existing.home_score || aScore > existing.away_score);
+
+                if (isNewGoal) {
+                    const { error: upsertError } = await supabaseClient
+                        .from('sent_goals_championsliga')
+                        .upsert({
+                            match_id: matchIdStr,
+                            home_score: hScore,
+                            away_score: aScore,
+                            updated_at: new Date().toISOString()
+                        }, { onConflict: 'match_id' });
+
+                    if (upsertError) {
+                        console.error("Supabase upsert Fehler:", upsertError);
+                        return;
                     }
+
+                    const scorerText = cleanPlayer ? `Torschütze: ${cleanPlayer}${minStr}\n` : '';
+                    const teamTitle = scoringTeam ? ` für ${scoringTeam}` : '';
+
+                    await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            table: 'push_subscriptions_championsliga',
+                            title: `⭐ Champions League: ⚽ TOR${teamTitle} zum ${hScore}:${aScore}!`,
+                            body: `${scorerText}${home} : ${away} (${hScore}:${aScore})`
+                        })
+                    });
                 }
             } catch (e) {
                 console.error("Fehler beim CL Tor-Cache & Push:", e);
@@ -504,6 +528,15 @@
             showVarCorrectionAlert(`${home} : ${away} (${homeScore}:${awayScore})`);
 
             try {
+                await supabaseClient
+                    .from('sent_goals_championsliga')
+                    .upsert({
+                        match_id: String(matchId),
+                        home_score: homeScore,
+                        away_score: awayScore,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'match_id' });
+
                 await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
                     method: 'POST',
                     mode: 'cors',
@@ -1182,7 +1215,6 @@
                             
                             let teamEvents = (match.events || []).filter(ev => ev.team.id === teamObj.id);
                             
-                            // Korrigierte Auswechslungs-Zuordnung (ev.assist = Ein, ev.player = Aus)
                             let subsEvents = teamEvents.filter(ev => ev.type === 'subst').map(ev => {
                                 let pInPhoto = getPlayerPhotoHtml(ev.assist?.id, '16px');
                                 let pOutPhoto = getPlayerPhotoHtml(ev.player?.id, '16px');
