@@ -464,14 +464,17 @@
             if ((hScore + aScore) === 0) return;
 
             const matchIdStr = String(matchId);
+            const minMatch = (latestScorer || '').match(/\((\d+(?:\+\d+)?)'\)/);
+            const minuteText = minMatch ? `${minMatch[1]}. Min.` : 'Minute unbekannt';
             const cleanPlayer = (latestScorer || '')
                 .replace(/⚽\s*/g, '')
-                .replace(/\(\d+['’]?\)/g, '')
+                .replace(/\(\d+(?:\+\d+)?'\)/g, '')
                 .replace('(Pen)', '')
                 .replace('(ET)', '')
                 .trim();
-            const minMatch = (latestScorer || '').match(/\(\d+['’]?\)/);
-            const minStr = minMatch ? ` ${minMatch[0]}` : '';
+
+            const scorerName = cleanPlayer || 'Unbekannt';
+            const scorerLine = `Torschütze: ${scorerName} (${minuteText})`;
 
             try {
                 const { data: existing, error: checkError } = await supabaseClient
@@ -502,7 +505,6 @@
                         return;
                     }
 
-                    const scorerText = cleanPlayer ? `Torschütze: ${cleanPlayer}${minStr}\n` : '';
                     const teamTitle = scoringTeam ? ` für ${scoringTeam}` : '';
 
                     await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
@@ -512,7 +514,9 @@
                         body: JSON.stringify({
                             table: 'push_subscriptions_championsliga',
                             title: `⭐ Champions League: ⚽ TOR${teamTitle} zum ${hScore}:${aScore}!`,
-                            body: `${scorerText}${home} : ${away} (${hScore}:${aScore})`
+                            body: `${scorerLine}\n${home} : ${away} (${hScore}:${aScore})`,
+                            scorer: scorerName,
+                            minute: minuteText
                         })
                     });
                 }
@@ -605,7 +609,9 @@
                     body: JSON.stringify({
                         table: 'push_subscriptions_championsliga',
                         title: "⭐ Champions League Tor-Alarm (Test)",
-                        body: "Test-Alarm über Supabase Edge Function erfolgreich ausgelöst!"
+                        body: "Torschütze: Harry Kane (67. Min.)\nFC Bayern München : FC Arsenal (2:1)",
+                        scorer: "Harry Kane",
+                        minute: "67. Min."
                     })
                 });
                 if (response.ok) alert("Test-Push erfolgreich ausgelöst!");
@@ -963,7 +969,7 @@
 
                     const resolvedMatches = await Promise.all(matchPromises);
 
-                    resolvedMatches.forEach(({ match: m, events }) => {
+                    for (const { match: m, events } of resolvedMatches) {
                         const fixtureId = m.fixture.id;
                         const home = m.teams.home;
                         const away = m.teams.away;
@@ -986,17 +992,33 @@
                             previousScores[prevKey] = { home: goalsHome, away: goalsAway };
                             localStorage.setItem('cl_previous_scores', JSON.stringify(previousScores));
 
+                            let activeEvents = events || [];
+                            let goalEvents = activeEvents.filter(ev => ev.type === 'Goal');
+
+                            if ((goalsHome + goalsAway) > 0 && goalEvents.length === 0) {
+                                try {
+                                    const singleRes = await fetch(`https://v3.football.api-sports.io/fixtures?id=${fixtureId}`, {
+                                        headers: { "x-apisports-key": apiKey }
+                                    });
+                                    const singleData = await singleRes.json();
+                                    if (singleData.response && singleData.response[0]?.events) {
+                                        activeEvents = singleData.response[0].events;
+                                        goalEvents = activeEvents.filter(ev => ev.type === 'Goal');
+                                    }
+                                } catch (err) {}
+                            }
+
                             let latestScorer = "";
                             let scoringTeam = "";
-                            if (events && events.length > 0) {
-                                let goalEvents = events.filter(ev => ev.type === 'Goal');
-                                if (goalEvents.length > 0) {
-                                    let lastGoal = goalEvents[goalEvents.length - 1];
-                                    latestScorer = `${lastGoal.player?.name || ''} (${lastGoal.time?.elapsed || ''}')`;
-                                    scoringTeam = lastGoal.team?.id === home.id ? home.name : away.name;
-                                }
+                            if (goalEvents.length > 0) {
+                                const lastGoal = goalEvents[goalEvents.length - 1];
+                                const playerName = lastGoal.player?.name ? lastGoal.player.name.trim() : "Unbekannt";
+                                const elapsed = lastGoal.time?.elapsed ? `${lastGoal.time.elapsed}${lastGoal.time?.extra ? '+' + lastGoal.time.extra : ''}'` : "";
+                                latestScorer = elapsed ? `${playerName} (${elapsed})` : playerName;
+                                scoringTeam = lastGoal.team?.id === home.id ? home.name : (lastGoal.team?.id === away.id ? away.name : "");
                             }
-                            checkAllGoalsAndNotify(home.name, away.name, goalsHome, goalsAway, latestScorer, fixtureId, scoringTeam);
+
+                            await checkAllGoalsAndNotify(home.name, away.name, goalsHome, goalsAway, latestScorer, fixtureId, scoringTeam);
                         }
 
                         let displayHome = m.goals.home !== null ? m.goals.home : "-";
@@ -1095,7 +1117,7 @@
                             ${scorersHtml}
                         `;
                         container.appendChild(itemDiv);
-                    });
+                    }
                     document.getElementById('tickerTrack').innerHTML = tickerHtml + tickerHtml;
 
                     manageSmartPolling(hasLiveGames);
